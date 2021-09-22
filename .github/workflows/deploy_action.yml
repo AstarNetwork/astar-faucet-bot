@@ -1,0 +1,38 @@
+name: Deploy to Server
+# action trigger condition. You can read more from here <https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions#on>
+on:
+    push: # you can remove unused branch names
+        branches:
+            - 'main'
+            - 'master'
+            - 'release/*'
+            - 'production/*'
+    release: # triggers on all release events. Remove this if you're not using it
+        types: [published, created, edited]
+
+jobs:
+    # build the source code
+    build:
+        name: Build Code
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [16.x]
+        steps:
+            - uses: actions/checkout@v2
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v2
+              with:
+                  node-version: ${{ matrix.node-version }}
+            - name: build
+              run: |
+                  yarn
+                  yarn build
+              working-directory: ./
+    # deploy the build
+    deploy:
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Deploy to Server
+              run: echo "Please add the deploy behavior here"
