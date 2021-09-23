@@ -2,6 +2,8 @@ import { Client, Intents } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import { DISCORD_APP_TOKEN, DISCORD_APP_CLIENT_ID, DISCORD_GUILD_ID, appConfig } from '../config';
+import { NetworkName } from './astarApi';
+import { checkAddressType } from '../helpers';
 
 export interface DiscordCredentials {
     token: string;
@@ -18,8 +20,8 @@ export const appOauthInstallUrl = () => {
 
     // used to add the bot to a server (https://discordjs.guide/preparations/adding-your-bot-to-servers.html#bot-invite-links)
     return `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_APP_CLIENT_ID}&permissions=${
-        appConfig.permissions
-    }&scope=${concatBotScope(appConfig.scope)}`;
+        appConfig.discord.permissions
+    }&scope=${concatBotScope(appConfig.discord.scope)}`;
 };
 
 const refreshSlashCommands = async (appToken: string, appClientId: string, guildId: string) => {
@@ -30,7 +32,7 @@ const refreshSlashCommands = async (appToken: string, appClientId: string, guild
 
         // note: the `DISCORD_GUILD_ID` is hard-coded in this project, but this can be changed to read it from a remote database
         await rest.put(Routes.applicationGuildCommands(appClientId, guildId), {
-            body: appConfig.slashCommands,
+            body: appConfig.discord.slashCommands,
         });
 
         console.log('Successfully reloaded application (/) commands.');
@@ -62,18 +64,29 @@ export const discordApp = async (appCred: DiscordCredentials) => {
         }
     });
 
-    // a ping-pong test
+    // handle faucet token request
     clientApp.on('interactionCreate', async (interaction) => {
         if (!interaction.isCommand()) return;
 
         const { commandName } = interaction;
 
-        if (commandName === 'ping') {
-            await interaction.reply('Pong!');
-        } else if (commandName === 'greet') {
-            await interaction.reply('Hello ' + interaction.user.tag);
-        } else if (commandName === 'blep') {
-            await interaction.reply(`You chose ${JSON.stringify(interaction.options.data)}`);
+        if (commandName === 'faucet') {
+            // note: the values are based on `src/config/appConfig.json`
+            const networkName = interaction.options.data[0].value as NetworkName;
+            const address = interaction.options.data[1].value;
+            try {
+                if (!address || typeof address !== 'string') {
+                    throw new Error('No address was given!');
+                }
+
+                const addrType = checkAddressType(address);
+
+                await interaction.reply(
+                    `Your options: network type: \`${networkName}\`. Address: \`${address}\`. Address type: \`${addrType}\``,
+                );
+            } catch (err) {
+                await interaction.reply(`${err}`);
+            }
         }
     });
 

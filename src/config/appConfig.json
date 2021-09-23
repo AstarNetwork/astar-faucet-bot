@@ -1,44 +1,158 @@
 {
-    "scope": ["bot", "applications.commands"],
-    "permissions": 2147551232,
-    "slashCommands": [
-        {
-            "name": "ping",
-            "description": "Replies with Pong!"
-        },
-        { "name": "greet", "description": "Greets the user" },
-        {
-            "name": "blep",
-            "type": 1,
-            "description": "Send a random adorable animal photo",
-            "options": [
-                {
-                    "name": "animal",
-                    "description": "The type of animal",
-                    "type": 3,
-                    "required": true,
-                    "choices": [
-                        {
-                            "name": "Dog",
-                            "value": "animal_dog"
-                        },
-                        {
-                            "name": "Cat",
-                            "value": "animal_cat"
-                        },
-                        {
-                            "name": "Penguin",
-                            "value": "animal_penguin"
-                        }
-                    ]
+    "discord": {
+        "scope": ["bot", "applications.commands"],
+        "permissions": 2147551232,
+        "slashCommands": [
+            {
+                "name": "faucet",
+                "type": 1,
+                "description": "Receive a testnet token from the faucet",
+                "options": [
+                    {
+                        "name": "network",
+                        "description": "The name of the testnet",
+                        "type": 4,
+                        "required": true,
+                        "choices": [
+                            {
+                                "name": "Dusty",
+                                "value": 0
+                            },
+                            {
+                                "name": "Shibuya",
+                                "value": 1
+                            }
+                        ]
+                    },
+                    {
+                        "name": "address",
+                        "description": "Your public address for receiving the token",
+                        "type": 3,
+                        "required": false
+                    }
+                ]
+            }
+        ]
+    },
+
+    "network": {
+        "dusty": {
+            "endpoint": "wss://rpc.dusty.plasmnet.io",
+            "types": {
+                "AccountInfo": "AccountInfoWithProviders",
+                "AuthorityId": "AccountId",
+                "AuthorityVote": "u32",
+                "ChallengeGameOf": {
+                    "challenges": "Vec<Hash>",
+                    "createdBlock": "BlockNumber",
+                    "decision": "Decision",
+                    "propertyHash": "Hash"
                 },
-                {
-                    "name": "only_smol",
-                    "description": "Whether to show only baby animals",
-                    "type": 5,
-                    "required": false
+                "Claim": {
+                    "amount": "u128",
+                    "approve": "BTreeSet<AuthorityId>",
+                    "complete": "bool",
+                    "decline": "BTreeSet<AuthorityId>",
+                    "params": "Lockdrop"
+                },
+                "ClaimId": "H256",
+                "ClaimVote": {
+                    "approve": "bool",
+                    "authority": "u16",
+                    "claim_id": "ClaimId"
+                },
+                "Decision": {
+                    "_enum": ["Undecided", "True", "False"]
+                },
+                "DollarRate": "u128",
+                "EraIndex": "u32",
+                "EraStakingPoints": {
+                    "individual": "BTreeMap<AccountId, Balance>",
+                    "total": "Balance"
+                },
+                "Keys": "SessionKeys3",
+                "Lockdrop": {
+                    "duration": "u64",
+                    "public_key": "[u8; 33]",
+                    "transaction_hash": "H256",
+                    "type": "u8",
+                    "value": "u128"
+                },
+                "Parameters": {
+                    "canBeNominated": "bool",
+                    "optionExpired": "u128",
+                    "optionP": "u32"
+                },
+                "PredicateContractOf": {
+                    "inputs": "Vec<u8>",
+                    "predicateHash": "Hash"
+                },
+                "PredicateHash": "Hash",
+                "PrefabOvmModule": {
+                    "code": "Vec<u8>",
+                    "scheduleVersion": "u32"
+                },
+                "Property": {
+                    "inputs": "Vec<Vec<u8>>",
+                    "predicateAddress": "AccountId"
+                },
+                "PropertyOf": {
+                    "inputs": "Vec<Vec<u8>>",
+                    "predicateAddress": "AccountId"
+                },
+                "Schedule": {
+                    "putCodePerByteCost": "Weight",
+                    "version": "u32"
+                },
+                "SmartContract": {
+                    "_enum": {
+                        "Wasm": "AccountId",
+                        "Evm": "H160"
+                    }
+                },
+                "StakingParameters": {
+                    "canBeNominated": "bool",
+                    "optionExpired": "u128",
+                    "optionP": "u32"
+                },
+                "TickerRate": {
+                    "authority": "u16",
+                    "btc": "u128",
+                    "eth": "u128"
+                },
+                "VoteCounts": {
+                    "bad": "u32",
+                    "good": "u32"
                 }
-            ]
+            }
+        },
+        "shibuya": {
+            "endpoint": "wss://rpc.shibuya.astar.network",
+            "types": {
+                "Address": "MultiAddress",
+                "LookupSource": "MultiAddress",
+                "ChainId": {
+                    "_enum": {
+                        "RelayChain": null,
+                        "Parachain": "ParaId"
+                    }
+                },
+                "XCurrencyId": {
+                    "chain_id": "ChainId",
+                    "currency_id": "Bytes"
+                },
+                "CurrencyIdOf": "CurrencyId",
+                "CurrencyId": {
+                    "_enum": {
+                        "Token": "TokenSymbol"
+                    }
+                },
+                "TokenSymbol": {
+                    "_enum": ["ACA", "AUSD", "DOT", "XBTC", "LDOT", "RENBTC", "SDN", "PLM"]
+                },
+                "AmountOf": "Amount",
+                "Amount": "i128"
+            }
         }
-    ]
+    }
 }

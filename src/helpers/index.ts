@@ -1,1 +1,2 @@
-export * as Math from './addNumber';
+export * from './addNumber';
+export * from './addressCheck';
