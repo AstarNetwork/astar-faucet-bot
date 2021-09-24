@@ -1,8 +1,8 @@
-import { Client, Intents } from 'discord.js';
+import { Client, Intents, Interaction } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import { DISCORD_APP_TOKEN, DISCORD_APP_CLIENT_ID, DISCORD_GUILD_ID, appConfig } from '../config';
-import { NetworkName } from './astarApi';
+import { NetworkName, getFaucetAccountPair } from './astar';
 import { checkAddressType } from '../helpers';
 
 export interface DiscordCredentials {
@@ -65,32 +65,36 @@ export const discordApp = async (appCred: DiscordCredentials) => {
     });
 
     // handle faucet token request
-    clientApp.on('interactionCreate', async (interaction) => {
-        if (!interaction.isCommand()) return;
-
-        const { commandName } = interaction;
-
-        if (commandName === 'faucet') {
-            // note: the values are based on `src/config/appConfig.json`
-            const networkName = interaction.options.data[0].value as NetworkName;
-            const address = interaction.options.data[1].value;
-            try {
-                if (!address || typeof address !== 'string') {
-                    throw new Error('No address was given!');
-                }
-
-                const addrType = checkAddressType(address);
-
-                await interaction.reply(
-                    `Your options: network type: \`${networkName}\`. Address: \`${address}\`. Address type: \`${addrType}\``,
-                );
-            } catch (err) {
-                await interaction.reply(`${err}`);
-            }
-        }
-    });
+    clientApp.on('interactionCreate', faucetCommandHandler);
 
     await clientApp.login(DISCORD_APP_TOKEN);
 
     return clientApp;
+};
+
+const faucetCommandHandler = async (interaction: Interaction) => {
+    if (!interaction.isCommand()) return;
+
+    const { commandName } = interaction;
+
+    if (commandName === 'faucet') {
+        // note: the values are based on `src/config/appConfig.json`
+        const networkName = interaction.options.data[0]?.value as NetworkName;
+        const address = interaction.options.data[1]?.value;
+        try {
+            if (!address || typeof address !== 'string') {
+                throw new Error('No address was given!');
+            }
+
+            const addrType = checkAddressType(address);
+
+            await interaction.reply(
+                `Your options: network type: \`${networkName}\`. Address: \`${address}\`. Address type: \`${addrType}\`\nPlease send unused tokens back to the faucet \`${
+                    getFaucetAccountPair().address
+                }\``,
+            );
+        } catch (err) {
+            await interaction.reply(`${err}`);
+        }
+    }
 };

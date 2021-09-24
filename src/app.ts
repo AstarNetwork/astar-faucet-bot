@@ -1,4 +1,4 @@
-import { discordApp, expressApp } from './clients';
+import { discordApp, expressApp, astarApp } from './clients';
 import { DISCORD_APP_TOKEN, DISCORD_APP_CLIENT_ID } from './config';
 
 /**
@@ -8,6 +8,7 @@ export default async function app() {
     if (!DISCORD_APP_TOKEN || !DISCORD_APP_CLIENT_ID) {
         throw new Error('No app tokens or ID were given!');
     }
+    await astarApp();
     await discordApp({ token: DISCORD_APP_TOKEN, clientId: DISCORD_APP_CLIENT_ID });
     await expressApp();
 }
