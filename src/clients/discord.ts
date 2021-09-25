@@ -1,9 +1,6 @@
-import { Client, Intents, Interaction } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
-import { DISCORD_APP_TOKEN, DISCORD_APP_CLIENT_ID, DISCORD_GUILD_ID, appConfig } from '../config';
-import { NetworkName, getFaucetAccountPair } from './astar';
-import { checkAddressType } from '../helpers';
+import { DISCORD_APP_CLIENT_ID, appConfig } from '../config';
 
 export interface DiscordCredentials {
     token: string;
@@ -24,7 +21,7 @@ export const appOauthInstallUrl = () => {
     }&scope=${concatBotScope(appConfig.discord.scope)}`;
 };
 
-const refreshSlashCommands = async (appToken: string, appClientId: string, guildId: string) => {
+export const refreshSlashCommands = async (appToken: string, appClientId: string, guildId: string) => {
     // generally, you only need to run this function when the slash command changes
     const rest = new REST({ version: '9' }).setToken(appToken);
     try {
@@ -38,63 +35,5 @@ const refreshSlashCommands = async (appToken: string, appClientId: string, guild
         console.log('Successfully reloaded application (/) commands.');
     } catch (error) {
         console.error(error);
-    }
-};
-
-/**
- * The main controller for Discord API requests. Everything that is done from Discord should be written here
- */
-export const discordApp = async (appCred: DiscordCredentials) => {
-    // todo: refactor this to handle multiple guilds
-    if (!DISCORD_GUILD_ID) {
-        throw new Error(
-            'No Discord bot token was provided, please set the environment variable DISCORD_APP_TOKEN and DISCORD_APP_CLIENT_ID',
-        );
-    }
-
-    await refreshSlashCommands(appCred.token, appCred.clientId, DISCORD_GUILD_ID);
-
-    const clientApp = new Client({ intents: [Intents.FLAGS.GUILDS] });
-
-    clientApp.on('ready', async () => {
-        if (clientApp.user) {
-            console.log(`${clientApp.user.tag} is ready!`);
-        } else {
-            console.log(`Failed to login as a user!`);
-        }
-    });
-
-    // handle faucet token request
-    clientApp.on('interactionCreate', faucetCommandHandler);
-
-    await clientApp.login(DISCORD_APP_TOKEN);
-
-    return clientApp;
-};
-
-const faucetCommandHandler = async (interaction: Interaction) => {
-    if (!interaction.isCommand()) return;
-
-    const { commandName } = interaction;
-
-    if (commandName === 'faucet') {
-        // note: the values are based on `src/config/appConfig.json`
-        const networkName = interaction.options.data[0]?.value as NetworkName;
-        const address = interaction.options.data[1]?.value;
-        try {
-            if (!address || typeof address !== 'string') {
-                throw new Error('No address was given!');
-            }
-
-            const addrType = checkAddressType(address);
-
-            await interaction.reply(
-                `Your options: network type: \`${networkName}\`. Address: \`${address}\`. Address type: \`${addrType}\`\nPlease send unused tokens back to the faucet \`${
-                    getFaucetAccountPair().address
-                }\``,
-            );
-        } catch (err) {
-            await interaction.reply(`${err}`);
-        }
     }
 };
