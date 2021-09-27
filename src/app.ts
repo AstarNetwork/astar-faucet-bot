@@ -77,6 +77,8 @@ const discordFaucetApp = async (appCred: DiscordCredentials) => {
                 await interaction.deferReply();
 
                 console.log(`Sending ${astarApi.formatBalance(dripAmount)} to ${address}`);
+
+                await astarApi.sendTokenTo(address);
                 const remainingFunds = await astarApi.getFaucetBalance();
                 await interaction.editReply(
                     `Sent ${astarApi.formatBalance(
