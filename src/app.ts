@@ -83,17 +83,17 @@ const discordFaucetApp = async (appCred: DiscordCredentials) => {
                     );
 
                     if (result.status.isInBlock) {
-                        console.log(`Transaction included at blockHash ${result.status.asInBlock}`);
+                        console.log(`Transaction included at block hash ${result.status.asInBlock}`);
 
                         await interaction.editReply(
                             `Sent tokens to \`${address}\`. Transaction included at block hash \`${result.status.asInBlock}\``,
                         );
                     } else if (result.status.isFinalized) {
-                        console.log(`Transaction finalized at block hash \`${result.status.asFinalized}\``);
+                        console.log(`Transaction finalized at block hash ${result.status.asFinalized}`);
 
                         const remainingFunds = await astarApi.getFaucetBalance();
                         await interaction.editReply(
-                            `Sent tokens to \`${address}\`. Transaction finalized at blockHash ${result.status.asFinalized}.\nRemaining funds: \`${remainingFunds}\`\nPlease send unused tokens back to the faucet \`${astarApi.faucetAccount.address}\``,
+                            `Sent tokens to \`${address}\`. Transaction finalized at blockHash \`${result.status.asFinalized}\`.\nRemaining funds: \`${remainingFunds}\`\nPlease send unused tokens back to the faucet \`${astarApi.faucetAccount.address}\``,
                         );
                         unsub();
                     }
