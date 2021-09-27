@@ -22,7 +22,7 @@
                     },
                     {
                         "name": "address",
-                        "description": "Your public address for receiving the token",
+                        "description": "Your SS58 (Substrate) or H160 (EVM) public address for receiving the token",
                         "type": 3,
                         "required": false
                     }
