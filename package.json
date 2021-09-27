@@ -33,7 +33,7 @@
         "build": "tsc --project tsconfig.json",
         "lint": "eslint '*/**/*.{js,ts}' --quiet --fix",
         "lint:check": "eslint '*/**/*.{js,ts}'",
-        "test": "NODE_ENV=test jest --verbose --coverage"
+        "test": "NODE_ENV=test echo \"Test not implemented\"!"
     },
     "engines": {
         "node": ">=16.6.x"
@@ -61,6 +61,10 @@
     },
     "dependencies": {
         "@discordjs/rest": "^0.1.0-canary.0",
+        "@polkadot/api": "^6.0.5",
+        "@polkadot/keyring": "^7.4.1",
+        "@polkadot/util": "^7.4.1",
+        "@polkadot/util-crypto": "^7.4.1",
         "discord-api-types": "^0.23.1",
         "discord.js": "^13.1.0",
         "express": "^4.17.1"
