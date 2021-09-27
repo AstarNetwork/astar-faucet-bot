@@ -23,7 +23,8 @@ jobs:
               run: |
                   yarn
                   yarn build
-            - name: push to production
+                  cp package.json build
+            - name: Push to production
               uses: cpina/github-action-push-to-another-repository@master
               env:
                   API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
