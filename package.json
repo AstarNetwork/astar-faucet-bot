@@ -21,10 +21,10 @@
         "type": "git",
         "url": "https://github.com/PlasmNetwork/astar-faucet-bot.git"
     },
-    "main": "index.js",
+    "main": "build/index.js",
     "scripts": {
         "start": "yarn run serve",
-        "serve": "node index.js",
+        "serve": "node build/index.js",
         "dev": "ts-node-dev -r dotenv/config src/index.ts",
         "build": "tsc --project tsconfig.json",
         "lint": "eslint '*/**/*.{js,ts}' --quiet --fix",
