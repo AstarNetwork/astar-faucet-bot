@@ -95,7 +95,22 @@ export class AstarFaucetApi {
         });
     }
 
-    public async sendTokenTo(to: string, statusCb: (result: ISubmittableResult) => Promise<void>) {
+    // public async sendTokenTo(to: string, statusCb: (result: ISubmittableResult) => Promise<void>) {
+    //     // send 30 testnet tokens per call
+    //     //const faucetAmount = new BN(30).mul(new BN(10).pow(new BN(18)));
+
+    //     let destinationAccount = to;
+    //     const addrType = checkAddressType(to);
+
+    //     // convert the h160 (evm) account to ss58 before sending the tokens
+    //     if (addrType === 'H160') {
+    //         destinationAccount = evmToAddress(to, ASTAR_SS58_FORMAT);
+    //     }
+    //     return await this._api.tx.balances
+    //         .transfer(destinationAccount, this._dripAmount)
+    //         .signAndSend(this._faucetAccount, statusCb);
+    // }
+    public async sendTokenTo(to: string) {
         // send 30 testnet tokens per call
         //const faucetAmount = new BN(30).mul(new BN(10).pow(new BN(18)));
 
@@ -106,8 +121,9 @@ export class AstarFaucetApi {
         if (addrType === 'H160') {
             destinationAccount = evmToAddress(to, ASTAR_SS58_FORMAT);
         }
+
         return await this._api.tx.balances
             .transfer(destinationAccount, this._dripAmount)
-            .signAndSend(this._faucetAccount, statusCb);
+            .signAndSend(this._faucetAccount);
     }
 }
