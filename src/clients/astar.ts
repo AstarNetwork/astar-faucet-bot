@@ -15,7 +15,7 @@ export interface FaucetOption {
 // ss58 address prefix
 export const ASTAR_SS58_FORMAT = 5;
 
-export const ASTAR_TOKEN_DECIMALS = 15;
+export const ASTAR_TOKEN_DECIMALS = 18;
 
 export class AstarFaucetApi {
     private _keyring: Keyring;
