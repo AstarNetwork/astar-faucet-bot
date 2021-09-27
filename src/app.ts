@@ -76,39 +76,15 @@ const discordFaucetApp = async (appCred: DiscordCredentials) => {
                 // todo: check if the user has already requested tokens or not
                 await interaction.deferReply();
 
-                const unsub = await astarApi.sendTokenTo(address, async (result) => {
-                    console.log(`Sending ${astarApi.formatBalance(dripAmount)} to ${address}`);
-
-                    await interaction.editReply(
-                        `Sending ${astarApi.formatBalance(
-                            dripAmount,
-                        )} to \`${address}\`. Please wait until the transaction has been finalized.`,
-                    );
-
-                    if (result.status.isInBlock) {
-                        console.log(`Transaction included at block hash ${result.status.asInBlock}`);
-
-                        await interaction.editReply(
-                            `Sending ${astarApi.formatBalance(
-                                dripAmount,
-                            )} to \`${address}\`. Transaction included at block hash \`${result.status.asInBlock}\``,
-                        );
-                    } else if (result.status.isFinalized) {
-                        console.log(`Transaction finalized at block hash ${result.status.asFinalized}`);
-
-                        const remainingFunds = await astarApi.getFaucetBalance();
-                        await interaction.editReply(
-                            `Sent ${astarApi.formatBalance(
-                                dripAmount,
-                            )} to \`${address}\`. Transaction finalized at blockHash \`${
-                                result.status.asFinalized
-                            }\`.\nRemaining funds: \`${remainingFunds}\`\nPlease send unused tokens back to the faucet \`${
-                                astarApi.faucetAccount.address
-                            }\``,
-                        );
-                        unsub();
-                    }
-                });
+                console.log(`Sending ${astarApi.formatBalance(dripAmount)} to ${address}`);
+                const remainingFunds = await astarApi.getFaucetBalance();
+                await interaction.editReply(
+                    `Sent ${astarApi.formatBalance(
+                        dripAmount,
+                    )} to \`${address}\`. Please wait until the transaction gets finalized.\nRemaining funds: \`${remainingFunds}\`\nPlease send unused tokens back to the faucet \`${
+                        astarApi.faucetAccount.address
+                    }\``,
+                );
             } catch (err) {
                 console.warn(err);
                 await interaction.editReply({ content: `${err}` });
