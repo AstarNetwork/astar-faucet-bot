@@ -51,8 +51,6 @@ export class AstarFaucetApi {
             types: chainMetaTypes,
         });
 
-        await api.connect();
-
         const apiInst = await api.isReady;
 
         // get chain metadata
@@ -106,7 +104,7 @@ export class AstarFaucetApi {
 
         const txHash = await this._api.tx.balances
             .transfer(destinationAccount, this._dripAmount)
-            .signAndSend(this._faucetAccount.address);
+            .signAndSend(this._faucetAccount);
 
         return txHash;
     }

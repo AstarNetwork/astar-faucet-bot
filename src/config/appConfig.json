@@ -4,7 +4,7 @@
         "permissions": 2147551232,
         "slashCommands": [
             {
-                "name": "faucet",
+                "name": "drip",
                 "type": 1,
                 "description": "Receive a testnet token from the faucet",
                 "options": [
@@ -14,10 +14,6 @@
                         "type": 3,
                         "required": true,
                         "choices": [
-                            {
-                                "name": "Dusty",
-                                "value": "dusty"
-                            },
                             {
                                 "name": "Shibuya",
                                 "value": "shibuya"
