@@ -65,13 +65,13 @@ export class AstarFaucetApi {
         });
 
         // subscribe to account balance changes
-        await apiInst.query.system.account(this._faucetAccount.address, ({ data }) => {
-            const faucetReserve = formatBalance(data.free.toBn(), {
-                withSi: true,
-                withUnit: true,
-            });
-            console.log(`Faucet has ${faucetReserve}`);
-        });
+        // await apiInst.query.system.account(this._faucetAccount.address, ({ data }) => {
+        //     const faucetReserve = formatBalance(data.free.toBn(), {
+        //         withSi: true,
+        //         withUnit: true,
+        //     });
+        //     console.log(`Faucet has ${faucetReserve}`);
+        // });
 
         this._api = apiInst;
 
