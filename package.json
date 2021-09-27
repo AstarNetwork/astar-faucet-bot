@@ -1,31 +1,27 @@
 {
-    "name": "discord-bot-starter",
-    "version": "1.1.0",
-    "description": "Discord bot starter project made with discord.js",
+    "name": "astar-faucet-bot",
+    "version": "1.0.0",
+    "description": "Astar Network testnet faucet bot",
     "private": true,
     "keywords": [
-        "starter",
+        "astar-network",
         "typescript",
         "discord",
         "bot"
     ],
-    "homepage": "https://github.com/hoonsubin/discord-bot-starter",
+    "homepage": "https://github.com/PlasmNetwork/astar-faucet-bot",
     "bugs": {
-        "url": "https://github.com/hoonsubin/discord-bot-starter/issues"
+        "url": "https://github.com/PlasmNetwork/astar-faucet-bot/issues"
     },
     "author": {
         "name": "Hoon Kim",
         "url": "https://github.com/hoonsubin"
     },
-    "funding": {
-        "type": "patreon",
-        "url": "https://www.patreon.com/teamstep"
-    },
     "repository": {
         "type": "git",
-        "url": "https://github.com/hoonsubin/discord-bot-starter.git"
+        "url": "https://github.com/PlasmNetwork/astar-faucet-bot.git"
     },
-    "main": "build/index.js",
+    "main": "index.js",
     "scripts": {
         "start": "yarn run serve",
         "serve": "node index.js",
