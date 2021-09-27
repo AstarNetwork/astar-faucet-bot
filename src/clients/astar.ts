@@ -1,4 +1,5 @@
 import { ApiPromise, WsProvider, Keyring } from '@polkadot/api';
+import type { ISubmittableResult } from '@polkadot/types/types';
 import { appConfig } from '../config';
 import { formatBalance } from '@polkadot/util';
 import { evmToAddress } from '@polkadot/util-crypto';
@@ -82,15 +83,19 @@ export class AstarFaucetApi {
 
         const { data } = await this._api.query.system.account(addr);
 
-        const faucetReserve = formatBalance(data.free.toBn(), {
-            withSi: true,
-            withUnit: true,
-        });
+        const faucetReserve = this.formatBalance(data.free.toBn());
 
         return faucetReserve;
     }
 
-    public async sendTokenTo(to: string) {
+    public formatBalance(input: string | number | BN) {
+        return formatBalance(input, {
+            withSi: true,
+            withUnit: true,
+        });
+    }
+
+    public async sendTokenTo(to: string, statusCb: (result: ISubmittableResult) => Promise<void>) {
         // send 30 testnet tokens per call
         //const faucetAmount = new BN(30).mul(new BN(10).pow(new BN(18)));
 
@@ -101,11 +106,8 @@ export class AstarFaucetApi {
         if (addrType === 'H160') {
             destinationAccount = evmToAddress(to, ASTAR_SS58_FORMAT);
         }
-
-        const txHash = await this._api.tx.balances
+        return await this._api.tx.balances
             .transfer(destinationAccount, this._dripAmount)
-            .signAndSend(this._faucetAccount);
-
-        return txHash;
+            .signAndSend(this._faucetAccount, statusCb);
     }
 }

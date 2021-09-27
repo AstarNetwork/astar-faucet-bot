@@ -72,19 +72,35 @@ const discordFaucetApp = async (appCred: DiscordCredentials) => {
                     throw new Error('No address was given!');
                 }
 
-                console.log(`Sending tokens to ${address}`);
-
                 // todo: check if the user has already requested tokens or not
+                await interaction.deferReply();
 
-                await astarApi.sendTokenTo(address);
-                const remainingFunds = await astarApi.getFaucetBalance();
+                const unsub = await astarApi.sendTokenTo(address, async (result) => {
+                    console.log(`Sending tokens to ${address}`);
 
-                await interaction.reply(
-                    `Sent tokens to \`${address}\`. Please wait until the transaction has been finalized.\nRemaining funds: \`${remainingFunds}\`\nPlease send unused tokens back to the faucet \`${astarApi.faucetAccount.address}\``,
-                );
+                    await interaction.editReply(
+                        `Sending tokens to \`${address}\`. Please wait until the transaction has been finalized.`,
+                    );
+
+                    if (result.status.isInBlock) {
+                        console.log(`Transaction included at blockHash ${result.status.asInBlock}`);
+
+                        await interaction.editReply(
+                            `Sent tokens to \`${address}\`. Transaction included at block hash \`${result.status.asInBlock}\``,
+                        );
+                    } else if (result.status.isFinalized) {
+                        console.log(`Transaction finalized at block hash \`${result.status.asFinalized}\``);
+
+                        const remainingFunds = await astarApi.getFaucetBalance();
+                        await interaction.editReply(
+                            `Sent tokens to \`${address}\`. Transaction finalized at blockHash ${result.status.asFinalized}.\nRemaining funds: \`${remainingFunds}\`\nPlease send unused tokens back to the faucet \`${astarApi.faucetAccount.address}\``,
+                        );
+                        unsub();
+                    }
+                });
             } catch (err) {
                 console.warn(err);
-                await interaction.reply(`${err}`);
+                await interaction.editReply({ content: `${err}` });
             }
         }
     });
