@@ -2,33 +2,28 @@
     "discord": {
         "scope": ["bot", "applications.commands"],
         "permissions": 2147551232,
-        "slashCommands": [
-            {
-                "name": "drip",
-                "type": 1,
-                "description": "Receive a testnet token from the faucet",
-                "options": [
-                    {
-                        "name": "network",
-                        "description": "The name of the testnet",
-                        "type": 3,
-                        "required": true,
-                        "choices": [
-                            {
-                                "name": "Shibuya",
-                                "value": "shibuya"
-                            }
-                        ]
-                    },
-                    {
-                        "name": "address",
-                        "description": "Your SS58 (Substrate) or H160 (EVM) public address for receiving the token",
-                        "type": 3,
-                        "required": true
-                    }
-                ]
-            }
-        ]
+        "slashCommands": [{
+            "name": "drip",
+            "type": 1,
+            "description": "Receive a testnet token from the faucet",
+            "options": [{
+                    "name": "network",
+                    "description": "The name of the testnet",
+                    "type": 3,
+                    "required": true,
+                    "choices": [{
+                        "name": "Shibuya",
+                        "value": "shibuya"
+                    }]
+                },
+                {
+                    "name": "address",
+                    "description": "Your SS58 (Substrate) or H160 (EVM) public address for receiving the token",
+                    "type": 3,
+                    "required": true
+                }
+            ]
+        }]
     },
 
     "network": {
@@ -147,7 +142,23 @@
                     "_enum": ["ACA", "AUSD", "DOT", "XBTC", "LDOT", "RENBTC", "SDN", "PLM"]
                 },
                 "AmountOf": "Amount",
-                "Amount": "i128"
+                "Amount": "i128",
+                "SmartContract": {
+                    "_enum": {
+                        "Evm": "H160",
+                        "Wasm": "AccountId"
+                    }
+                },
+                "EraStakingPoints": {
+                    "total": "Balance",
+                    "stakers": "BTreeMap<AccountId, Balance>",
+                    "formerStakedEra": "EraIndex",
+                    "claimedRewards": "Balance"
+                },
+                "EraRewardAndStake": {
+                    "rewards": "Balance",
+                    "staked": "Balance"
+                }
             }
         }
     }
