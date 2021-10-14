@@ -121,10 +121,6 @@
             "endpoint": "wss://rpc.shibuya.astar.network",
             "types": {
                 "Keys": "AccountId",
-                "Address": "MultiAddress",
-                "LookupSource": "MultiAddress",
-                "AmountOf": "Amount",
-                "Amount": "i128",
                 "SmartContract": {
                     "_enum": {
                         "Evm": "H160",
