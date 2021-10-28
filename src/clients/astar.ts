@@ -124,6 +124,6 @@ export class AstarFaucetApi {
 
         return await this._api.tx.balances
             .transfer(destinationAccount, this._dripAmount)
-            .signAndSend(this._faucetAccount);
+            .signAndSend(this._faucetAccount, { nonce: -1 });
     }
 }
