@@ -5,11 +5,12 @@ import {
     refreshSlashCommands,
     NetworkName,
     ASTAR_TOKEN_DECIMALS,
+    canRequestFaucet,
+    logRequest
 } from './clients';
 import { DISCORD_APP_TOKEN, DISCORD_APP_CLIENT_ID, DISCORD_GUILD_ID, DISCORD_FAUCET_CHANNEL_ID } from './config';
 import { Client, Intents, Interaction } from 'discord.js';
 import BN from 'bn.js';
-import Redis from 'ioredis';
 
 /**
  * the main entry function for running the discord application
@@ -42,8 +43,6 @@ const discordFaucetApp = async (appCred: DiscordCredentials) => {
 
     const clientApp = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
-    // // Prepare for Redis client
-    const redis = new Redis(process.env.REDIS_URL);
 
     // send 30 testnet tokens per call
     const oneToken = new BN(10).pow(new BN(ASTAR_TOKEN_DECIMALS));
@@ -81,20 +80,9 @@ const discordFaucetApp = async (appCred: DiscordCredentials) => {
                 await interaction.deferReply();
 
                 // Check if the user has already requested tokens or not
-                // The user can request token one time within 1 hour.
                 const requesterId = interaction.user.id;
-
-                const anHourInMilliSecond = 60 * 60 * 1000;
                 const now = Date.now();
-
-                const lastRequestAt = Number(await redis.get(requesterId));
-                const untilNextRequest = lastRequestAt + anHourInMilliSecond - now;
-                if (untilNextRequest > 0)  {
-                    const untilNextRequestMin = Math.floor(untilNextRequest / 1000 / 60);
-                    const untilNextRequestSec = Math.floor( (untilNextRequest / 1000) - (untilNextRequestMin * 60) );
-                    const replyMessage = `You already requested the Faucet within an hour. Try again in ${untilNextRequestMin} mins ${untilNextRequestSec} secs later.`;
-                    throw new Error(replyMessage);
-                }
+                await canRequestFaucet(requesterId, now);
 
                 // Send token to the requester
                 console.log(`Sending ${astarApi.formatBalance(dripAmount)} to ${address}`);
@@ -109,8 +97,8 @@ const discordFaucetApp = async (appCred: DiscordCredentials) => {
                     }\``,
                 );
 
-                // Log the faucet request on Redis. Expires automatically in 60 mins.
-                redis.set(requesterId, now, "PX", anHourInMilliSecond);
+                // Log the faucet request.
+                await logRequest(requesterId, now);
 
             } catch (err) {
                 console.warn(err);
