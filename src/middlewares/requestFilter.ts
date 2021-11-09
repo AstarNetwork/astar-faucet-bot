@@ -13,9 +13,9 @@ export const canRequestFaucet = async (requesterId: string, now: number): Promis
     
     // If lastReuqest was made within the cooldown time, the requester cannot request.
     if (cooldownTimeMillisecond > elapsedTimeFromLastRequest) {
-        const untilNextRequest = cooldownTimeMillisecond - elapsedTimeFromLastRequest;
-        const untilNextRequestMin = Math.floor(untilNextRequest / 1000 / 60);
-        const untilNextRequestSec = Math.floor( (untilNextRequest / 1000) - (untilNextRequestMin * 60) );
+        const untilNextRequestMillisec = cooldownTimeMillisecond - elapsedTimeFromLastRequest;
+        const untilNextRequestMin      = Math.floor(untilNextRequestMillisec / 1000 / 60);
+        const untilNextRequestSec      = Math.floor( (untilNextRequestMillisec / 1000) - (untilNextRequestMin * 60) );
 
         const replyMessage = `You already requested the Faucet. Try again in ${untilNextRequestMin} mins ${untilNextRequestSec} secs.`;
         throw new Error(replyMessage);
