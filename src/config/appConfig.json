@@ -2,28 +2,33 @@
     "discord": {
         "scope": ["bot", "applications.commands"],
         "permissions": 2147551232,
-        "slashCommands": [{
-            "name": "drip",
-            "type": 1,
-            "description": "Receive a testnet token from the faucet",
-            "options": [{
-                    "name": "network",
-                    "description": "The name of the testnet",
-                    "type": 3,
-                    "required": true,
-                    "choices": [{
-                        "name": "Shibuya",
-                        "value": "shibuya"
-                    }]
-                },
-                {
-                    "name": "address",
-                    "description": "Your SS58 (Substrate) or H160 (EVM) public address for receiving the token",
-                    "type": 3,
-                    "required": true
-                }
-            ]
-        }]
+        "slashCommands": [
+            {
+                "name": "drip",
+                "type": 1,
+                "description": "Receive a testnet token from the faucet",
+                "options": [
+                    {
+                        "name": "network",
+                        "description": "The name of the testnet",
+                        "type": 3,
+                        "required": true,
+                        "choices": [
+                            {
+                                "name": "Shibuya",
+                                "value": "shibuya"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "address",
+                        "description": "Your SS58 (Substrate) or H160 (EVM) public address for receiving the token",
+                        "type": 3,
+                        "required": true
+                    }
+                ]
+            }
+        ]
     },
 
     "network": {
@@ -137,7 +142,6 @@
                     "rewards": "Balance",
                     "staked": "Balance"
                 }
-
             }
         }
     }

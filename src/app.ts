@@ -6,11 +6,7 @@ import {
     NetworkName,
     ASTAR_TOKEN_DECIMALS,
 } from './clients';
-import {
-    canRequestFaucet,
-    logRequest
-
-} from './middlewares';
+import { canRequestFaucet, logRequest } from './middlewares';
 
 import { DISCORD_APP_TOKEN, DISCORD_APP_CLIENT_ID, DISCORD_GUILD_ID, DISCORD_FAUCET_CHANNEL_ID } from './config';
 import { Client, Intents, Interaction } from 'discord.js';
@@ -46,7 +42,6 @@ const discordFaucetApp = async (appCred: DiscordCredentials) => {
     await refreshSlashCommands(appCred.token, appCred.clientId, DISCORD_GUILD_ID);
 
     const clientApp = new Client({ intents: [Intents.FLAGS.GUILDS] });
-
 
     // send 30 testnet tokens per call
     const oneToken = new BN(10).pow(new BN(ASTAR_TOKEN_DECIMALS));
@@ -103,7 +98,6 @@ const discordFaucetApp = async (appCred: DiscordCredentials) => {
 
                 // Log the faucet request.
                 await logRequest(requesterId, now);
-
             } catch (err) {
                 console.warn(err);
                 await interaction.editReply({ content: `${err}` });
