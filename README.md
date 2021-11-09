@@ -10,14 +10,22 @@ You can do this by creating a `.env` file with the following variables.
 ```env
 # Bot user app token
 DISCORD_APP_TOKEN=<bot token>
+
 # Bot user client ID
 DISCORD_APP_CLIENT_ID=<app id>
+
 # Server ID for the bot to be installed
 DISCORD_GUILD_ID=<guild id>
+
 # The channel ID for the bot to listen to
 DISCORD_FAUCET_CHANNEL_ID=<channel id>
+
 # Secret phrase (mnemonic) for the faucet account
 FAUCET_SECRET_PHRASE=<secret phrase>
+
+# Redis URL in URL format
+# In Heroku, this is automatically set when you add the Redis add-on to your app.
+REDIS_URL=<redis://[:password@]host[:port][/db-number][?option=value]>
 ```
 
 ### Scripts

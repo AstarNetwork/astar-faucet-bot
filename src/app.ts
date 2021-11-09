@@ -6,6 +6,8 @@ import {
     NetworkName,
     ASTAR_TOKEN_DECIMALS,
 } from './clients';
+import { canRequestFaucet, logRequest } from './middlewares';
+
 import { DISCORD_APP_TOKEN, DISCORD_APP_CLIENT_ID, DISCORD_GUILD_ID, DISCORD_FAUCET_CHANNEL_ID } from './config';
 import { Client, Intents, Interaction } from 'discord.js';
 import BN from 'bn.js';
@@ -73,9 +75,15 @@ const discordFaucetApp = async (appCred: DiscordCredentials) => {
                     throw new Error('No address was given!');
                 }
 
-                // todo: check if the user has already requested tokens or not
+                // Send 'Waiting' message to the user
                 await interaction.deferReply();
 
+                // Check if the user has already requested tokens or not
+                const requesterId = interaction.user.id;
+                const now = Date.now();
+                await canRequestFaucet(requesterId, now);
+
+                // Send token to the requester
                 console.log(`Sending ${astarApi.formatBalance(dripAmount)} to ${address}`);
 
                 await astarApi.sendTokenTo(address);
@@ -87,6 +95,9 @@ const discordFaucetApp = async (appCred: DiscordCredentials) => {
                         astarApi.faucetAccount.address
                     }\``,
                 );
+
+                // Log the faucet request.
+                await logRequest(requesterId, now);
             } catch (err) {
                 console.warn(err);
                 await interaction.editReply({ content: `${err}` });
