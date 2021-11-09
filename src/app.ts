@@ -5,9 +5,13 @@ import {
     refreshSlashCommands,
     NetworkName,
     ASTAR_TOKEN_DECIMALS,
+} from './clients';
+import {
     canRequestFaucet,
     logRequest
-} from './clients';
+
+} from './middlewares';
+
 import { DISCORD_APP_TOKEN, DISCORD_APP_CLIENT_ID, DISCORD_GUILD_ID, DISCORD_FAUCET_CHANNEL_ID } from './config';
 import { Client, Intents, Interaction } from 'discord.js';
 import BN from 'bn.js';
