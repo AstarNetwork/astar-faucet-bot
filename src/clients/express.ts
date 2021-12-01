@@ -1,4 +1,7 @@
+import { getRemainTime } from './../middlewares/requestFilter';
+import { evmFaucet, Network, generateFaucetId } from './../modules/evm-faucet';
 import express from 'express';
+import { logger } from '../modules/logger';
 import { appOauthInstallUrl } from './discord';
 
 /**
@@ -21,10 +24,38 @@ export const expressApp = async () => {
         //return res.status(200).json({ url: installUrl });
     });
 
-    // add endpoint for OAuth installation with redirect URLs (https://discord.com/developers/docs/topics/oauth2#authorization-code-grant)
     app.get('/oauth2', async ({ query }, res) => {
         const { code } = query;
         console.log(code);
+    });
+
+    app.get('/:network/drip', async (req, res) => {
+        try {
+            const network: Network = req.params.network as Network;
+            const address: string = req.query.address as string;
+            const { blockNumber, blockHash } = await evmFaucet({ network, address });
+            res.json({ blockNumber, blockHash });
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (e: any) {
+            logger.error(e);
+            res.status(500).json(e.message || 'something goes wrong');
+        }
+    });
+
+    app.get('/:network/drip/remain-time', async (req, res) => {
+        try {
+            const network: Network = req.params.network as Network;
+            const address: string = req.query.address as string;
+            const requesterId = generateFaucetId({ network, address });
+            const result = await getRemainTime({ requesterId, isEvm: true });
+            res.json(result);
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (e: any) {
+            logger.error(e);
+            res.status(500).json(e.message || 'something goes wrong');
+        }
     });
 
     app.listen(port, () => console.log(`App listening at port ${port}`));

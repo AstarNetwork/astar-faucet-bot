@@ -23,6 +23,9 @@ DISCORD_FAUCET_CHANNEL_ID=<channel id>
 # Secret phrase (mnemonic) for the faucet account
 FAUCET_SECRET_PHRASE=<secret phrase>
 
+# Private key for the faucet hot wallet
+EVM_FAUCET_HOT_WALLET_PRIVATE_KEY=<private key>
+
 # Redis URL in URL format
 # In Heroku, this is automatically set when you add the Redis add-on to your app.
 REDIS_URL=<redis://[:password@]host[:port][/db-number][?option=value]>
