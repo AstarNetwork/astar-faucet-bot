@@ -64,12 +64,11 @@
         "@polkadot/keyring": "^7.4.1",
         "@polkadot/util": "^7.4.1",
         "@polkadot/util-crypto": "^7.4.1",
-        "body-parser": "^1.19.0",
         "discord-api-types": "^0.23.1",
         "discord.js": "^13.1.0",
+        "ethers": "^5.5.2",
         "express": "^4.17.1",
         "ioredis": "^4.28.0",
-        "luxon": "^2.1.1",
-        "web3": "^1.6.1"
+        "luxon": "^2.1.1"
     }
 }

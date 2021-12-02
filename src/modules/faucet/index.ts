@@ -1,14 +1,4 @@
-export { evmFaucet, generateFaucetId, getFaucetAmount, checkAddressFormat } from './utils';
+export { generateFaucetId, getFaucetAmount, getFaucetInfo, sendFaucet } from './utils';
 
-export enum Network {
-    shiden = 'shiden',
-    shibuya = 'shibuya',
-}
-
-export const evmEndpoint = {
-    [Network.shiden]: 'https://rpc.shiden.astar.network:8545',
-    [Network.shibuya]: 'https://rpc.shibuya.astar.network:8545',
-};
-export type ChainNetwork = Network.shibuya | Network.shiden;
-
-export const FAUCET_AMOUNT = '0.002';
+export const TESTNET_FAUCET_AMOUNT = '15';
+export const MAINNET_FAUCET_AMOUNT = '0.002';

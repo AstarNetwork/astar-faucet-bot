@@ -5,6 +5,7 @@ import {
     refreshSlashCommands,
     NetworkName,
     ASTAR_TOKEN_DECIMALS,
+    Network,
 } from './clients';
 import { canRequestFaucet, logRequest } from './middlewares';
 
@@ -50,7 +51,7 @@ const discordFaucetApp = async (appCred: DiscordCredentials) => {
     const astarApi = new AstarFaucetApi({ faucetAccountSeed: process.env.FAUCET_SECRET_PHRASE, dripAmount });
 
     // todo: find a way to connect to both Dusty and Shibuya
-    await astarApi.connectTo('shibuya');
+    await astarApi.connectTo(Network.shibuya);
 
     clientApp.on('ready', async () => {
         if (clientApp.user) {

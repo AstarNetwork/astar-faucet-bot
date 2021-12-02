@@ -1,9 +1,8 @@
-import { getRemainTime } from './../middlewares/requestFilter';
-import { evmFaucet, Network, generateFaucetId, getFaucetAmount, checkAddressFormat } from '../modules/faucet';
 import express from 'express';
+import { Network } from '.';
+import { getFaucetInfo, sendFaucet } from '../modules/faucet';
 import { logger } from '../modules/logger';
 import { appOauthInstallUrl } from './discord';
-import bodyParser from 'body-parser';
 
 /**
  * Handles client request via Express.js. These are usually for custom endpoints or OAuth and app installation.
@@ -11,7 +10,7 @@ import bodyParser from 'body-parser';
  */
 export const expressApp = async () => {
     const app = express();
-    app.use(bodyParser.json());
+    app.use(express.json());
 
     const port = process.env.PORT || 8080;
 
@@ -33,12 +32,10 @@ export const expressApp = async () => {
 
     app.post('/:network/drip', async (req, res) => {
         try {
-            console.log('req.body', req.body);
+            const network: Network = req.params.network as Network;
             const address: string = req.body.destination as string;
-            const addressFormat = checkAddressFormat(address);
-            // const { blockNumber, blockHash } = await evmFaucet({ network, address });
-            // res.json({ blockNumber, blockHash });
-            res.json({ addressFormat });
+            const hash = await sendFaucet({ address, network });
+            return res.status(200).json({ hash });
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
@@ -47,14 +44,12 @@ export const expressApp = async () => {
         }
     });
 
-    app.get('/:network/drip/info', async (req, res) => {
+    app.get('/:network/drip', async (req, res) => {
         try {
             const network: Network = req.params.network as Network;
             const address: string = req.query.address as string;
-            const requesterId = generateFaucetId({ network, address });
-            const remainTime = await getRemainTime({ requesterId, isEvm: true });
-            const faucet = getFaucetAmount(network);
-            res.json({ remainTime, faucet });
+            const { timestamps, faucet } = await getFaucetInfo({ network, address });
+            res.json({ timestamps, faucet });
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {

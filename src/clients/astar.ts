@@ -7,7 +7,14 @@ import type { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import { checkAddressType } from '../helpers';
 
-export type NetworkName = 'dusty' | 'shibuya';
+export enum Network {
+    shiden = 'shiden',
+    shibuya = 'shibuya',
+    dusty = 'dusty',
+}
+
+export type NetworkName = Network.dusty | Network.shibuya | Network.shiden;
+
 export interface FaucetOption {
     faucetAccountSeed: string;
     dripAmount: BN;
