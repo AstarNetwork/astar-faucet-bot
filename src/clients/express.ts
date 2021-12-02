@@ -1,8 +1,9 @@
 import { getRemainTime } from './../middlewares/requestFilter';
-import { evmFaucet, Network, generateFaucetId, getFaucetAmount } from './../modules/evm-faucet';
+import { evmFaucet, Network, generateFaucetId, getFaucetAmount, checkAddressFormat } from '../modules/faucet';
 import express from 'express';
 import { logger } from '../modules/logger';
 import { appOauthInstallUrl } from './discord';
+import bodyParser from 'body-parser';
 
 /**
  * Handles client request via Express.js. These are usually for custom endpoints or OAuth and app installation.
@@ -10,6 +11,7 @@ import { appOauthInstallUrl } from './discord';
  */
 export const expressApp = async () => {
     const app = express();
+    app.use(bodyParser.json());
 
     const port = process.env.PORT || 8080;
 
@@ -29,12 +31,14 @@ export const expressApp = async () => {
         console.log(code);
     });
 
-    app.get('/:network/drip', async (req, res) => {
+    app.post('/:network/drip', async (req, res) => {
         try {
-            const network: Network = req.params.network as Network;
-            const address: string = req.query.address as string;
-            const { blockNumber, blockHash } = await evmFaucet({ network, address });
-            res.json({ blockNumber, blockHash });
+            console.log('req.body', req.body);
+            const address: string = req.body.destination as string;
+            const addressFormat = checkAddressFormat(address);
+            // const { blockNumber, blockHash } = await evmFaucet({ network, address });
+            // res.json({ blockNumber, blockHash });
+            res.json({ addressFormat });
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
