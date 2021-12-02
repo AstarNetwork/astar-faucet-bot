@@ -49,7 +49,7 @@ export const expressApp = async () => {
             const network: Network = req.params.network as Network;
             const address: string = req.query.address as string;
             const { timestamps, faucet } = await getFaucetInfo({ network, address });
-            res.json({ timestamps, faucet });
+            return res.status(200).json({ timestamps, faucet });
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
