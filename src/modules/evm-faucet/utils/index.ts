@@ -70,3 +70,10 @@ export const evmFaucet = async ({
 
     return { blockNumber, blockHash };
 };
+
+export const getFaucetAmount = (network: Network): { amount: number; unit: string } => {
+    if (network === Network.shiden) {
+        return { amount: Number(FAUCET_AMOUNT), unit: 'SDN' };
+    }
+    return { amount: Number(FAUCET_AMOUNT), unit: 'SBY' };
+};

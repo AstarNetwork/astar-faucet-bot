@@ -1,5 +1,5 @@
 import { getRemainTime } from './../middlewares/requestFilter';
-import { evmFaucet, Network, generateFaucetId } from './../modules/evm-faucet';
+import { evmFaucet, Network, generateFaucetId, getFaucetAmount } from './../modules/evm-faucet';
 import express from 'express';
 import { logger } from '../modules/logger';
 import { appOauthInstallUrl } from './discord';
@@ -43,13 +43,14 @@ export const expressApp = async () => {
         }
     });
 
-    app.get('/:network/drip/remain-time', async (req, res) => {
+    app.get('/:network/drip/info', async (req, res) => {
         try {
             const network: Network = req.params.network as Network;
             const address: string = req.query.address as string;
             const requesterId = generateFaucetId({ network, address });
-            const result = await getRemainTime({ requesterId, isEvm: true });
-            res.json(result);
+            const remainTime = await getRemainTime({ requesterId, isEvm: true });
+            const faucet = getFaucetAmount(network);
+            res.json({ remainTime, faucet });
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {

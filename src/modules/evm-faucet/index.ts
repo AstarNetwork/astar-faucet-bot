@@ -1,4 +1,4 @@
-export { evmFaucet, generateFaucetId } from './utils';
+export { evmFaucet, generateFaucetId, getFaucetAmount } from './utils';
 
 export enum Network {
     shiden = 'shiden',
