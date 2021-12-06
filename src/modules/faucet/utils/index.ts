@@ -1,8 +1,10 @@
+import { ApiPromise, Keyring, WsProvider } from '@polkadot/api';
 import { BN } from '@polkadot/util';
 import { ethers } from 'ethers';
 import { MAINNET_FAUCET_AMOUNT, TESTNET_FAUCET_AMOUNT } from '..';
-import { NetworkName, ASTAR_TOKEN_DECIMALS, AstarFaucetApi, Network } from '../../../clients';
-import { getRequestTimestamps, canRequestFaucet, logRequest } from '../../../middlewares';
+import { ASTAR_SS58_FORMAT, ASTAR_TOKEN_DECIMALS, Network, NetworkName } from '../../../clients';
+import { canRequestFaucet, getRequestTimestamps, logRequest } from '../../../middlewares';
+import { appConfig } from './../../../config/index';
 
 export const getFaucetAmount = (network: Network): { amount: number; unit: string } => {
     const isMainnet = network === 'shiden';
@@ -52,10 +54,22 @@ export const sendFaucet = async ({ address, network }: { address: string; networ
 
     const amount = isMainnet ? MAINNET_FAUCET_AMOUNT : TESTNET_FAUCET_AMOUNT;
     const dripAmount = ethers.utils.parseUnits(amount.toString(), ASTAR_TOKEN_DECIMALS).toString();
-    const astarApi = new AstarFaucetApi({ faucetAccountSeed, dripAmount: new BN(dripAmount) });
 
-    await astarApi.connectTo(network);
-    const result = await astarApi.sendTokenTo(address);
+    const endpoint = appConfig.network[network].endpoint;
+    const chainMetaTypes = appConfig.network[network].types;
+    const provider = new WsProvider(endpoint);
+    const api = new ApiPromise({
+        provider,
+        types: chainMetaTypes,
+    });
+    const apiInstance = await api.isReady;
+
+    const keying = new Keyring({ type: 'sr25519', ss58Format: ASTAR_SS58_FORMAT });
+    const faucetAccount = keying.addFromUri(faucetAccountSeed, { name: 'Astar Faucet' });
+    const result = await apiInstance.tx.balances
+        .transfer(address, new BN(dripAmount))
+        .signAndSend(faucetAccount, { nonce: -1 });
+
     await logRequest(requesterId, now, isMainnet);
-    return result.toJSON();
+    return result.hash.toString();
 };
