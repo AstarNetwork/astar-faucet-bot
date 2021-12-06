@@ -16,16 +16,11 @@ export const canRequestFaucet = async (requesterId: string, now: number, isMainn
     // If lastReuqest was made within the cooldown time, the requester cannot request.
     if (cooldownTimeMillisecond > elapsedTimeFromLastRequest) {
         const resetTime = DateTime.fromMillis(lastRequestAt + cooldownTimeMillisecond);
-        const { hours, minutes, seconds } = resetTime.diffNow(['hours', 'minutes', 'seconds']);
+        const { minutes, seconds } = resetTime.diffNow(['minutes', 'seconds']);
 
-        let replyMessage;
-        if (isMainnet) {
-            replyMessage = `You already requested the Faucet. Try again in ${hours} hrs ${minutes} mins ${seconds.toFixed(
-                0,
-            )} secs.`;
-        } else {
-            replyMessage = `You already requested the Faucet. Try again in ${minutes} mins ${seconds.toFixed(0)} secs.`;
-        }
+        const replyMessage = `You already requested the Faucet. Try again in ${minutes} mins ${seconds.toFixed(
+            0,
+        )} secs.`;
 
         throw new Error(replyMessage);
     }

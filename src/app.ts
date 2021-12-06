@@ -12,6 +12,7 @@ import { canRequestFaucet, logRequest } from './middlewares';
 import { DISCORD_APP_TOKEN, DISCORD_APP_CLIENT_ID, DISCORD_GUILD_ID, DISCORD_FAUCET_CHANNEL_ID } from './config';
 import { Client, Intents, Interaction } from 'discord.js';
 import BN from 'bn.js';
+import { TESTNET_FAUCET_AMOUNT } from './modules/faucet';
 
 /**
  * the main entry function for running the discord application
@@ -46,7 +47,7 @@ const discordFaucetApp = async (appCred: DiscordCredentials) => {
 
     // send 30 testnet tokens per call
     const oneToken = new BN(10).pow(new BN(ASTAR_TOKEN_DECIMALS));
-    const dripAmount = new BN(15).mul(oneToken);
+    const dripAmount = new BN(TESTNET_FAUCET_AMOUNT).mul(oneToken);
 
     const astarApi = new AstarFaucetApi({ faucetAccountSeed: process.env.FAUCET_SECRET_PHRASE, dripAmount });
 

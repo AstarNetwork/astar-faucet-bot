@@ -51,7 +51,7 @@ export const sendFaucet = async ({ address, network }: { address: string; networ
     await canRequestFaucet(requesterId, now, isMainnet);
 
     const amount = isMainnet ? MAINNET_FAUCET_AMOUNT : TESTNET_FAUCET_AMOUNT;
-    const dripAmount = ethers.utils.parseUnits(amount, ASTAR_TOKEN_DECIMALS).toString();
+    const dripAmount = ethers.utils.parseUnits(amount.toString(), ASTAR_TOKEN_DECIMALS).toString();
     const astarApi = new AstarFaucetApi({ faucetAccountSeed, dripAmount: new BN(dripAmount) });
 
     await astarApi.connectTo(network);
