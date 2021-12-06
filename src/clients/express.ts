@@ -3,6 +3,7 @@ import { Network } from '.';
 import { getFaucetInfo, sendFaucet } from '../modules/faucet';
 import { logger } from '../modules/logger';
 import { appOauthInstallUrl } from './discord';
+import cors from 'cors';
 
 /**
  * Handles client request via Express.js. These are usually for custom endpoints or OAuth and app installation.
@@ -11,6 +12,7 @@ import { appOauthInstallUrl } from './discord';
 export const expressApp = async () => {
     const app = express();
     app.use(express.json());
+    app.use(cors());
 
     const port = process.env.PORT || 8080;
 
