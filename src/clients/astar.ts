@@ -1,5 +1,4 @@
 import { ApiPromise, WsProvider, Keyring } from '@polkadot/api';
-import type { ISubmittableResult } from '@polkadot/types/types';
 import { appConfig } from '../config';
 import { formatBalance } from '@polkadot/util';
 import { evmToAddress } from '@polkadot/util-crypto';
@@ -7,10 +6,16 @@ import type { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import { checkAddressType } from '../helpers';
 
-export type NetworkName = 'dusty' | 'shibuya';
+export enum Network {
+    shiden = 'shiden',
+    shibuya = 'shibuya',
+    dusty = 'dusty',
+}
+
+export type NetworkName = Network.dusty | Network.shibuya | Network.shiden;
+
 export interface FaucetOption {
     faucetAccountSeed: string;
-    dripAmount: BN;
 }
 
 // ss58 address prefix
@@ -23,7 +28,6 @@ export class AstarFaucetApi {
     private _faucetAccount: KeyringPair;
     private _api: ApiPromise;
     // token amount to send from the faucet per request
-    private _dripAmount: BN;
 
     public get faucetAccount() {
         return this._faucetAccount;
@@ -36,7 +40,6 @@ export class AstarFaucetApi {
     constructor(options: FaucetOption) {
         this._keyring = new Keyring({ type: 'sr25519', ss58Format: ASTAR_SS58_FORMAT });
         this._faucetAccount = this._keyring.addFromUri(options.faucetAccountSeed, { name: 'Astar Faucet' });
-        this._dripAmount = options.dripAmount;
         //this._api = new ApiPromise();
     }
 
@@ -110,7 +113,7 @@ export class AstarFaucetApi {
     //         .transfer(destinationAccount, this._dripAmount)
     //         .signAndSend(this._faucetAccount, statusCb);
     // }
-    public async sendTokenTo(to: string) {
+    public async sendTokenTo({ to, dripAmount }: { to: string; dripAmount: BN }) {
         // send 30 testnet tokens per call
         //const faucetAmount = new BN(30).mul(new BN(10).pow(new BN(18)));
 
@@ -123,7 +126,7 @@ export class AstarFaucetApi {
         }
 
         return await this._api.tx.balances
-            .transfer(destinationAccount, this._dripAmount)
+            .transfer(destinationAccount, dripAmount)
             .signAndSend(this._faucetAccount, { nonce: -1 });
     }
 }

@@ -5,12 +5,15 @@ import {
     refreshSlashCommands,
     NetworkName,
     ASTAR_TOKEN_DECIMALS,
+    Network,
 } from './clients';
 import { canRequestFaucet, logRequest } from './middlewares';
 
 import { DISCORD_APP_TOKEN, DISCORD_APP_CLIENT_ID, DISCORD_GUILD_ID, DISCORD_FAUCET_CHANNEL_ID } from './config';
 import { Client, Intents, Interaction } from 'discord.js';
 import BN from 'bn.js';
+import { TESTNET_FAUCET_AMOUNT } from './modules/faucet';
+import { cryptoWaitReady } from '@polkadot/util-crypto';
 
 /**
  * the main entry function for running the discord application
@@ -20,8 +23,16 @@ export default async function app() {
         throw new Error('No app tokens or ID were given!');
     }
 
-    await discordFaucetApp({ token: DISCORD_APP_TOKEN, clientId: DISCORD_APP_CLIENT_ID });
-    await expressApp();
+    const faucetAccountSeed = process.env.FAUCET_SECRET_PHRASE;
+    if (!faucetAccountSeed) {
+        throw Error('Secret phrase is not defined');
+    }
+
+    await cryptoWaitReady();
+    const astarApi = new AstarFaucetApi({ faucetAccountSeed });
+
+    await discordFaucetApp({ token: DISCORD_APP_TOKEN, clientId: DISCORD_APP_CLIENT_ID, astarApi });
+    await expressApp(astarApi);
 }
 
 /**
@@ -39,18 +50,14 @@ const discordFaucetApp = async (appCred: DiscordCredentials) => {
         throw new Error('No seed phrase was provided for the faucet account');
     }
 
-    await refreshSlashCommands(appCred.token, appCred.clientId, DISCORD_GUILD_ID);
-
+    const { astarApi, token, clientId } = appCred;
+    await refreshSlashCommands(token, clientId, DISCORD_GUILD_ID);
     const clientApp = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
-    // send 30 testnet tokens per call
+    // // send 30 testnet tokens per call
     const oneToken = new BN(10).pow(new BN(ASTAR_TOKEN_DECIMALS));
-    const dripAmount = new BN(15).mul(oneToken);
-
-    const astarApi = new AstarFaucetApi({ faucetAccountSeed: process.env.FAUCET_SECRET_PHRASE, dripAmount });
-
-    // todo: find a way to connect to both Dusty and Shibuya
-    await astarApi.connectTo('shibuya');
+    const dripAmount = new BN(TESTNET_FAUCET_AMOUNT).mul(oneToken);
+    await astarApi.connectTo(Network.shibuya);
 
     clientApp.on('ready', async () => {
         if (clientApp.user) {
@@ -86,7 +93,7 @@ const discordFaucetApp = async (appCred: DiscordCredentials) => {
                 // Send token to the requester
                 console.log(`Sending ${astarApi.formatBalance(dripAmount)} to ${address}`);
 
-                await astarApi.sendTokenTo(address);
+                await astarApi.sendTokenTo({ to: address, dripAmount });
                 const remainingFunds = await astarApi.getFaucetBalance();
                 await interaction.editReply(
                     `Sent ${astarApi.formatBalance(

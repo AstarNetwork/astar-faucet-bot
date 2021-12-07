@@ -1,28 +1,46 @@
 import Redis from 'ioredis';
-
+import { DateTime } from 'luxon';
 const redis = new Redis(process.env.REDIS_URL);
 
 // Cooldown time in millisecond.
 // The requester must wait for Cooldown time to request next faucet.
-const cooldownTimeMillisecond = 60 * 60 * 1000;
+const testnetCooldownTimeMillisecond = 60 * 60 * 1000;
+const mainnetCooldownTimeMillisecond = 60 * 60 * 48 * 1000;
 
 // Check whether the requester can request Faucet or not based on the last request time.
-export const canRequestFaucet = async (requesterId: string, now: number): Promise<void> => {
+export const canRequestFaucet = async (requesterId: string, now: number, isMainnet?: boolean): Promise<void> => {
     const lastRequestAt = Number(await redis.get(requesterId));
     const elapsedTimeFromLastRequest = now - lastRequestAt;
+    const cooldownTimeMillisecond = isMainnet ? mainnetCooldownTimeMillisecond : testnetCooldownTimeMillisecond;
 
     // If lastReuqest was made within the cooldown time, the requester cannot request.
     if (cooldownTimeMillisecond > elapsedTimeFromLastRequest) {
-        const untilNextRequestMillisec = cooldownTimeMillisecond - elapsedTimeFromLastRequest;
-        const untilNextRequestMin = Math.floor(untilNextRequestMillisec / 1000 / 60);
-        const untilNextRequestSec = Math.floor(untilNextRequestMillisec / 1000 - untilNextRequestMin * 60);
+        const resetTime = DateTime.fromMillis(lastRequestAt + cooldownTimeMillisecond);
+        const { minutes, seconds } = resetTime.diffNow(['minutes', 'seconds']);
 
-        const replyMessage = `You already requested the Faucet. Try again in ${untilNextRequestMin} mins ${untilNextRequestSec} secs.`;
+        const replyMessage = `You already requested the Faucet. Try again in ${minutes} mins ${seconds.toFixed(
+            0,
+        )} secs.`;
+
         throw new Error(replyMessage);
     }
 };
 
 // Log the Faucet request on Redis
-export const logRequest = async (requesterId: string, now: number): Promise<void> => {
+export const logRequest = async (requesterId: string, now: number, isMainnet?: boolean): Promise<void> => {
+    const cooldownTimeMillisecond = isMainnet ? mainnetCooldownTimeMillisecond : testnetCooldownTimeMillisecond;
     await redis.set(requesterId, now, 'PX', cooldownTimeMillisecond);
+};
+
+export const getRequestTimestamps = async ({
+    requesterId,
+    isMainnet,
+}: {
+    requesterId: string;
+    isMainnet: boolean;
+}): Promise<{ lastRequestAt: number; nextRequestAt: number }> => {
+    const cooldownTimeMillisecond = isMainnet ? mainnetCooldownTimeMillisecond : testnetCooldownTimeMillisecond;
+    const lastRequestAt = Number(await redis.get(requesterId));
+    const nextRequestAt = lastRequestAt + cooldownTimeMillisecond;
+    return { lastRequestAt, nextRequestAt };
 };
