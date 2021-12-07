@@ -1,10 +1,12 @@
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
+import { AstarFaucetApi } from '.';
 import { DISCORD_APP_CLIENT_ID, appConfig } from '../config';
 
 export interface DiscordCredentials {
     token: string;
     clientId: string;
+    astarApi: AstarFaucetApi;
 }
 
 const concatBotScope = (scopes: string[]) => {
