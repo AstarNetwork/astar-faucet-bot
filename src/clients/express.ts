@@ -2,7 +2,6 @@ import cors from 'cors';
 import express from 'express';
 import { AstarFaucetApi, Network } from '.';
 import { getFaucetInfo, sendFaucet } from '../modules/faucet';
-import { logger } from '../modules/logger';
 import { appOauthInstallUrl } from './discord';
 
 /**
@@ -40,7 +39,7 @@ export const expressApp = async (astarApi: AstarFaucetApi) => {
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
-            logger.error(e);
+            console.error(e);
             res.status(500).json(e.message || 'something goes wrong');
         }
     });
@@ -54,7 +53,7 @@ export const expressApp = async (astarApi: AstarFaucetApi) => {
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
-            logger.error(e);
+            console.error(e);
             res.status(500).json(e.message || 'something goes wrong');
         }
     });
