@@ -58,7 +58,7 @@ export const sendFaucet = async ({
     const dripAmount = ethers.utils.parseUnits(amount.toString(), ASTAR_TOKEN_DECIMALS).toString();
     const result = await astarApi.sendTokenTo({ to: address, dripAmount: new BN(dripAmount) });
 
-    if (network === Network.shiden) {
+    if (network !== Network.shibuya) {
         await astarApi.connectTo(Network.shibuya);
     }
 
