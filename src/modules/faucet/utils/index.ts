@@ -45,7 +45,7 @@ export const sendFaucet = async ({
     network: NetworkName;
     astarApi: AstarFaucetApi;
 }): Promise<string> => {
-    const isMainnet = network === 'shiden';
+    const isMainnet = network === Network.shiden;
     const now = Date.now();
     const requesterId = generateFaucetId({
         network,
@@ -57,6 +57,10 @@ export const sendFaucet = async ({
     const amount = isMainnet ? MAINNET_FAUCET_AMOUNT : TESTNET_FAUCET_AMOUNT;
     const dripAmount = ethers.utils.parseUnits(amount.toString(), ASTAR_TOKEN_DECIMALS).toString();
     const result = await astarApi.sendTokenTo({ to: address, dripAmount: new BN(dripAmount) });
+
+    if (network === Network.shiden) {
+        await astarApi.connectTo(Network.shibuya);
+    }
 
     await logRequest(requesterId, now, isMainnet);
     return result.hash.toString();
