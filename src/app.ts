@@ -89,11 +89,11 @@ const discordFaucetApp = async (appCred: DiscordCredentials) => {
                 const requesterId = interaction.user.id;
                 const now = Date.now();
                 await canRequestFaucet(requesterId, now);
+                await astarApi.sendTokenTo({ to: address, dripAmount, network: Network.shibuya });
 
                 // Send token to the requester
                 console.log(`Sending ${astarApi.formatBalance(dripAmount)} to ${address}`);
 
-                await astarApi.sendTokenTo({ to: address, dripAmount });
                 const remainingFunds = await astarApi.getFaucetBalance();
                 await interaction.editReply(
                     `Sent ${astarApi.formatBalance(

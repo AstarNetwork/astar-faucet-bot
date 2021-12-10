@@ -113,10 +113,11 @@ export class AstarFaucetApi {
     //         .transfer(destinationAccount, this._dripAmount)
     //         .signAndSend(this._faucetAccount, statusCb);
     // }
-    public async sendTokenTo({ to, dripAmount }: { to: string; dripAmount: BN }) {
+    public async sendTokenTo({ to, dripAmount, network }: { to: string; dripAmount: BN; network: NetworkName }) {
         // send 30 testnet tokens per call
         //const faucetAmount = new BN(30).mul(new BN(10).pow(new BN(18)));
 
+        await this.connectTo(network);
         let destinationAccount = to;
         const addrType = checkAddressType(to);
 
