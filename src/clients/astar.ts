@@ -5,7 +5,7 @@ import { evmToAddress } from '@polkadot/util-crypto';
 import type { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import { checkAddressType } from '../helpers';
-
+import { ethers } from 'ethers';
 export enum Network {
     shiden = 'shiden',
     shibuya = 'shibuya',
@@ -129,5 +129,25 @@ export class AstarFaucetApi {
         return await this._api.tx.balances
             .transfer(destinationAccount, dripAmount)
             .signAndSend(this._faucetAccount, { nonce: -1 });
+    }
+
+    public async getNetworkUnit({ network }: { network: NetworkName }): Promise<string> {
+        try {
+            await this.connectTo(network);
+            return this._api.registry.chainTokens[0];
+        } catch (error) {
+            return 'Something went wrong';
+        }
+    }
+
+    public async getBalance({ network }: { network: NetworkName }): Promise<number> {
+        try {
+            await this.connectTo(network);
+            const account = await this._api.query.system.account(this._faucetAccount.address);
+            const balance = ethers.utils.formatUnits(account.data.free.toString(), ASTAR_TOKEN_DECIMALS);
+            return Number(balance);
+        } catch (error) {
+            return 0;
+        }
     }
 }

@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import { AstarFaucetApi, Network } from '.';
 import { getFaucetInfo, sendFaucet } from '../modules/faucet';
+import { getFaucetBalance } from '../modules/faucet/utils';
 import { appOauthInstallUrl } from './discord';
 
 /**
@@ -48,8 +49,21 @@ export const expressApp = async (astarApi: AstarFaucetApi) => {
         try {
             const network: Network = req.params.network as Network;
             const address: string = req.query.destination as string;
-            const { timestamps, faucet } = await getFaucetInfo({ network, address });
+            const { timestamps, faucet } = await getFaucetInfo({ network, address, astarApi });
             return res.status(200).json({ timestamps, faucet });
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (e: any) {
+            console.error(e);
+            res.status(500).json(e.message || 'something goes wrong');
+        }
+    });
+
+    app.get('/:network/balance', async (req, res) => {
+        try {
+            const network: Network = req.params.network as Network;
+            const { balance, unit } = await getFaucetBalance({ network, astarApi });
+            return res.status(200).json({ balance, unit });
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {

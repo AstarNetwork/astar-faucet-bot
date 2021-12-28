@@ -30,6 +30,10 @@ MAINNET_FAUCET_AMOUNT = '0.002'
 # Redis URL in URL format
 # In Heroku, this is automatically set when you add the Redis add-on to your app.
 REDIS_URL=<redis://[:password@]host[:port][/db-number][?option=value]>
+
+# Slack incoming webhooks
+# Ref: https://api.slack.com/messaging/webhooks
+SLACK_WEBHOOK = 'XXXXX/XXXXXXX/XXXXXXXXX'
 ```
 
 ### Scripts
