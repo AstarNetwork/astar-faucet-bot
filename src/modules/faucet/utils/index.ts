@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 import { MAINNET_FAUCET_AMOUNT, TESTNET_FAUCET_AMOUNT } from '..';
 import { AstarFaucetApi, ASTAR_TOKEN_DECIMALS, Network, NetworkName } from '../../../clients';
 import { canRequestFaucet, getRequestTimestamps, logRequest } from '../../../middlewares';
-import { postMessage } from '../../slack';
+import { postDiscordMessage } from '../../bot';
 import dedent from 'dedent';
 
 export const getFaucetAmount = (network: Network): number => {
@@ -78,7 +78,7 @@ export const sendFaucet = async ({
 };
 
 export const checkIsBalanceEnough = ({ network, balance }: { network: Network; balance: number }): boolean => {
-    const threshold = network === Network.shiden ? MAINNET_FAUCET_AMOUNT * 50 : TESTNET_FAUCET_AMOUNT * 50;
+    const threshold = network === Network.shiden ? MAINNET_FAUCET_AMOUNT * 500000 : TESTNET_FAUCET_AMOUNT * 50;
     return balance > threshold;
 };
 
@@ -86,15 +86,20 @@ export const getFaucetBalance = async ({ network, astarApi }: { network: Network
     const results = await Promise.all([astarApi.getBalance({ network }), astarApi.getNetworkUnit({ network })]);
     const balance = results[0];
     const unit = results[1];
-    const channelId = process.env.SLACK_WEBHOOK;
     const isBalanceEnough = checkIsBalanceEnough({ network, balance });
+
+    const channelId = process.env.DISCORD_WEBHOOKS;
+    const mentionId = process.env.DISCORD_MENTION_ID;
+
     if (channelId && !isBalanceEnough) {
+        const mention = mentionId && `<${mentionId}>`;
         const text = dedent`
-                ⚠️ The faucet wallet will run out of balance soon
+                ⚠️ The faucet wallet will run out of balance soon ${mention}
                 Address: ${astarApi.faucetAccount.address}
                 Balance: ${balance.toFixed(0)} ${unit}
                 `;
-        postMessage({ text, channelId });
+        postDiscordMessage({ text, channelId });
     }
+
     return { balance, unit };
 };
