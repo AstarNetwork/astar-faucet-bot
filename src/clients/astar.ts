@@ -1,5 +1,4 @@
 import { checkIsMainnet } from './../modules/faucet/utils/index';
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApiPromise, WsProvider, Keyring } from '@polkadot/api';
 import { appConfig } from '../config';
 import { formatBalance } from '@polkadot/util';
@@ -143,6 +142,7 @@ export class AstarFaucetApi {
         try {
             await this.connectTo(network);
             return this._api.registry.chainTokens[0];
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             console.error(error.message);
             return 'Something went wrong';
@@ -162,6 +162,7 @@ export class AstarFaucetApi {
             const account = await this._api.query.system.account(this._faucetAccount.address);
             const balance = Number(ethers.utils.formatUnits(account.data.free.toString(), ASTAR_TOKEN_DECIMALS));
             return { balance, isShortage: threshold > balance };
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             console.error(error.message);
             const balance = 0;
@@ -188,6 +189,7 @@ export class AstarFaucetApi {
                 postDiscordMessage({ text, endpoint });
             }
             return { balance, unit };
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             console.error(error.message);
             return { balance: 0, unit: '' };
