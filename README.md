@@ -31,15 +31,11 @@ MAINNET_FAUCET_AMOUNT = '0.002'
 # In Heroku, this is automatically set when you add the Redis add-on to your app.
 REDIS_URL=<redis://[:password@]host[:port][/db-number][?option=value]>
 
-# Slack incoming webhooks
-# Ref: https://api.slack.com/messaging/webhooks
-SLACK_WEBHOOKS = '1234/ABCD/EFG'
-
 # Discord webhooks
 # Ref: https://www.labnol.org/code/20563-post-message-to-discord-webhooks
-DISCORD_WEBHOOKS = '12345/ABCDEFG'
-# Ref: https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-
-DISCORD_MENTION_ID = '@123456789'
+DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/XXXXX/XXXXXXX'
+# Discord: Server settings > Roles > … > Copy ID
+DISCORD_MENTION_ID = '@&123456789'
 ```
 
 ### Scripts

@@ -3,11 +3,29 @@ import { ethers } from 'ethers';
 import { MAINNET_FAUCET_AMOUNT, TESTNET_FAUCET_AMOUNT } from '..';
 import { AstarFaucetApi, ASTAR_TOKEN_DECIMALS, Network, NetworkName } from '../../../clients';
 import { canRequestFaucet, getRequestTimestamps, logRequest } from '../../../middlewares';
-import { postDiscordMessage } from '../../bot';
-import dedent from 'dedent';
+
+export const checkIsMainnet = (network: Network): boolean => {
+    switch (network) {
+        case Network.shiden:
+            return true;
+
+        case Network.shibuya:
+            return false;
+
+        case Network.dusty:
+            return false;
+
+        // Enable after ASTR is launched
+        // case Network.astar:
+        //     return true
+
+        default:
+            return false;
+    }
+};
 
 export const getFaucetAmount = (network: Network): number => {
-    const isMainnet = network === Network.shiden;
+    const isMainnet = checkIsMainnet(network);
     const amount = isMainnet ? Number(MAINNET_FAUCET_AMOUNT) : Number(TESTNET_FAUCET_AMOUNT);
     return amount;
 };
@@ -35,7 +53,7 @@ export const getFaucetInfo = async ({
     address: string;
     astarApi: AstarFaucetApi;
 }) => {
-    const isMainnet = network === Network.shiden;
+    const isMainnet = checkIsMainnet(network);
     const requesterId = generateFaucetId({ network, address });
 
     const results = await Promise.all([
@@ -61,7 +79,7 @@ export const sendFaucet = async ({
     network: NetworkName;
     astarApi: AstarFaucetApi;
 }): Promise<string> => {
-    const isMainnet = network === Network.shiden;
+    const isMainnet = checkIsMainnet(network);
     const now = Date.now();
     const requesterId = generateFaucetId({
         network,
@@ -71,35 +89,9 @@ export const sendFaucet = async ({
 
     const amount = isMainnet ? MAINNET_FAUCET_AMOUNT : TESTNET_FAUCET_AMOUNT;
     const dripAmount = ethers.utils.parseUnits(amount.toString(), ASTAR_TOKEN_DECIMALS).toString();
+
     const result = await astarApi.sendTokenTo({ to: address, network, dripAmount: new BN(dripAmount) });
 
     await logRequest(requesterId, now, isMainnet);
     return result.hash.toString();
-};
-
-export const checkIsBalanceEnough = ({ network, balance }: { network: Network; balance: number }): boolean => {
-    const threshold = network === Network.shiden ? MAINNET_FAUCET_AMOUNT * 500000 : TESTNET_FAUCET_AMOUNT * 50;
-    return balance > threshold;
-};
-
-export const getFaucetBalance = async ({ network, astarApi }: { network: Network; astarApi: AstarFaucetApi }) => {
-    const results = await Promise.all([astarApi.getBalance({ network }), astarApi.getNetworkUnit({ network })]);
-    const balance = results[0];
-    const unit = results[1];
-    const isBalanceEnough = checkIsBalanceEnough({ network, balance });
-
-    const channelId = process.env.DISCORD_WEBHOOKS;
-    const mentionId = process.env.DISCORD_MENTION_ID;
-
-    if (channelId && !isBalanceEnough) {
-        const mention = mentionId && `<${mentionId}>`;
-        const text = dedent`
-                ⚠️ The faucet wallet will run out of balance soon ${mention}
-                Address: ${astarApi.faucetAccount.address}
-                Balance: ${balance.toFixed(0)} ${unit}
-                `;
-        postDiscordMessage({ text, channelId });
-    }
-
-    return { balance, unit };
 };

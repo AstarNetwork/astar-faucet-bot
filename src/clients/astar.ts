@@ -1,3 +1,5 @@
+import { checkIsMainnet } from './../modules/faucet/utils/index';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApiPromise, WsProvider, Keyring } from '@polkadot/api';
 import { appConfig } from '../config';
 import { formatBalance } from '@polkadot/util';
@@ -6,6 +8,9 @@ import type { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import { checkAddressType } from '../helpers';
 import { ethers } from 'ethers';
+import { MAINNET_FAUCET_AMOUNT, TESTNET_FAUCET_AMOUNT } from '../modules/faucet';
+import dedent from 'dedent';
+import { postDiscordMessage } from '../modules/bot';
 export enum Network {
     shiden = 'shiden',
     shibuya = 'shibuya',
@@ -126,6 +131,9 @@ export class AstarFaucetApi {
             destinationAccount = evmToAddress(to, ASTAR_SS58_FORMAT);
         }
 
+        await this.checkFaucetBalance({ network }).catch((e) => {
+            console.error(e.message);
+        });
         return await this._api.tx.balances
             .transfer(destinationAccount, dripAmount)
             .signAndSend(this._faucetAccount, { nonce: -1 });
@@ -135,19 +143,54 @@ export class AstarFaucetApi {
         try {
             await this.connectTo(network);
             return this._api.registry.chainTokens[0];
-        } catch (error) {
+        } catch (error: any) {
+            console.error(error.message);
             return 'Something went wrong';
         }
     }
 
-    public async getBalance({ network }: { network: NetworkName }): Promise<number> {
+    public async getBalanceStatus({
+        network,
+    }: {
+        network: NetworkName;
+    }): Promise<{ balance: number; isShortage: boolean }> {
+        const isMainnet = checkIsMainnet(network);
+        const numOfTimes = 50;
+        const threshold = isMainnet ? MAINNET_FAUCET_AMOUNT * numOfTimes : TESTNET_FAUCET_AMOUNT * numOfTimes;
         try {
             await this.connectTo(network);
             const account = await this._api.query.system.account(this._faucetAccount.address);
-            const balance = ethers.utils.formatUnits(account.data.free.toString(), ASTAR_TOKEN_DECIMALS);
-            return Number(balance);
-        } catch (error) {
-            return 0;
+            const balance = Number(ethers.utils.formatUnits(account.data.free.toString(), ASTAR_TOKEN_DECIMALS));
+            return { balance, isShortage: threshold > balance };
+        } catch (error: any) {
+            console.error(error.message);
+            const balance = 0;
+            return { balance, isShortage: threshold > balance };
+        }
+    }
+
+    public async checkFaucetBalance({ network }: { network: Network }): Promise<{ balance: number; unit: string }> {
+        try {
+            const results = await Promise.all([this.getBalanceStatus({ network }), this.getNetworkUnit({ network })]);
+            const { balance, isShortage } = results[0];
+            const unit = results[1];
+
+            const endpoint = process.env.DISCORD_WEBHOOK_URL;
+            const mentionId = process.env.DISCORD_MENTION_ID;
+
+            if (endpoint && isShortage) {
+                const mention = mentionId && `<${mentionId}>`;
+                const text = dedent`
+                            ⚠️ The faucet wallet will run out of balance soon ${mention}
+                            Address: ${this._faucetAccount.address}
+                            Balance: ${balance.toFixed(0)} ${unit}
+                            `;
+                postDiscordMessage({ text, endpoint });
+            }
+            return { balance, unit };
+        } catch (error: any) {
+            console.error(error.message);
+            return { balance: 0, unit: '' };
         }
     }
 }
