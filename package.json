@@ -37,6 +37,7 @@
     "license": "MIT",
     "devDependencies": {
         "@types/cors": "^2.8.12",
+        "@types/dedent": "^0.7.0",
         "@types/express": "^4.17.13",
         "@types/ioredis": "^4.28.1",
         "@types/jest": "^27.0.1",
@@ -64,7 +65,9 @@
         "@polkadot/keyring": "^7.4.1",
         "@polkadot/util": "^7.4.1",
         "@polkadot/util-crypto": "^7.4.1",
+        "axios": "^0.24.0",
         "cors": "^2.8.5",
+        "dedent": "^0.7.0",
         "discord-api-types": "^0.23.1",
         "discord.js": "^13.1.0",
         "ethers": "^5.5.2",

@@ -30,6 +30,12 @@ MAINNET_FAUCET_AMOUNT = '0.002'
 # Redis URL in URL format
 # In Heroku, this is automatically set when you add the Redis add-on to your app.
 REDIS_URL=<redis://[:password@]host[:port][/db-number][?option=value]>
+
+# Discord webhooks
+# Ref: https://www.labnol.org/code/20563-post-message-to-discord-webhooks
+DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/XXXXX/XXXXXXX'
+# Discord: Server settings > Roles > … > Copy ID
+DISCORD_MENTION_ID = '@&123456789'
 ```
 
 ### Scripts

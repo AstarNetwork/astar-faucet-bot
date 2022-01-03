@@ -4,14 +4,30 @@ import { MAINNET_FAUCET_AMOUNT, TESTNET_FAUCET_AMOUNT } from '..';
 import { AstarFaucetApi, ASTAR_TOKEN_DECIMALS, Network, NetworkName } from '../../../clients';
 import { canRequestFaucet, getRequestTimestamps, logRequest } from '../../../middlewares';
 
-export const getFaucetAmount = (network: Network): { amount: number; unit: string } => {
-    const isMainnet = network === 'shiden';
-    const amount = isMainnet ? Number(MAINNET_FAUCET_AMOUNT) : Number(TESTNET_FAUCET_AMOUNT);
+export const checkIsMainnet = (network: Network): boolean => {
+    switch (network) {
+        case Network.shiden:
+            return true;
 
-    if (network === Network.shiden) {
-        return { amount, unit: 'SDN' };
+        case Network.shibuya:
+            return false;
+
+        case Network.dusty:
+            return false;
+
+        // Enable after ASTR is launched
+        // case Network.astar:
+        //     return true
+
+        default:
+            return false;
     }
-    return { amount, unit: 'SBY' };
+};
+
+export const getFaucetAmount = (network: Network): number => {
+    const isMainnet = checkIsMainnet(network);
+    const amount = isMainnet ? Number(MAINNET_FAUCET_AMOUNT) : Number(TESTNET_FAUCET_AMOUNT);
+    return amount;
 };
 
 export const verifyNetwork = (network: string): true | Error => {
@@ -28,11 +44,29 @@ export const generateFaucetId = ({ network, address }: { network: NetworkName; a
     return `${network}:${address}`;
 };
 
-export const getFaucetInfo = async ({ network, address }: { network: Network; address: string }) => {
-    const isMainnet = network === Network.shiden;
+export const getFaucetInfo = async ({
+    network,
+    address,
+    astarApi,
+}: {
+    network: Network;
+    address: string;
+    astarApi: AstarFaucetApi;
+}) => {
+    const isMainnet = checkIsMainnet(network);
     const requesterId = generateFaucetId({ network, address });
-    const timestamps = await getRequestTimestamps({ requesterId, isMainnet });
-    const faucet = getFaucetAmount(network);
+
+    const results = await Promise.all([
+        getRequestTimestamps({ requesterId, isMainnet }),
+        astarApi.getNetworkUnit({ network }),
+    ]);
+    const timestamps = results[0];
+    const unit = results[1];
+
+    const faucet = {
+        amount: getFaucetAmount(network),
+        unit,
+    };
     return { timestamps, faucet };
 };
 
@@ -45,7 +79,7 @@ export const sendFaucet = async ({
     network: NetworkName;
     astarApi: AstarFaucetApi;
 }): Promise<string> => {
-    const isMainnet = network === Network.shiden;
+    const isMainnet = checkIsMainnet(network);
     const now = Date.now();
     const requesterId = generateFaucetId({
         network,
@@ -55,6 +89,7 @@ export const sendFaucet = async ({
 
     const amount = isMainnet ? MAINNET_FAUCET_AMOUNT : TESTNET_FAUCET_AMOUNT;
     const dripAmount = ethers.utils.parseUnits(amount.toString(), ASTAR_TOKEN_DECIMALS).toString();
+
     const result = await astarApi.sendTokenTo({ to: address, network, dripAmount: new BN(dripAmount) });
 
     await logRequest(requesterId, now, isMainnet);
