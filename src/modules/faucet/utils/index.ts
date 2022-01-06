@@ -63,6 +63,8 @@ export const getFaucetInfo = async ({
     const timestamps = results[0];
     const unit = results[1];
 
+    console.log('unit', unit);
+
     const faucet = {
         amount: getFaucetAmount(network),
         unit,

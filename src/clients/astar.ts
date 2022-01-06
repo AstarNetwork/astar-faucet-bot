@@ -138,14 +138,32 @@ export class AstarFaucetApi {
             .signAndSend(this._faucetAccount, { nonce: -1 });
     }
 
-    public async getNetworkUnit({ network }: { network: NetworkName }): Promise<string> {
-        try {
-            await this.connectTo(network);
-            return this._api.registry.chainTokens[0];
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
-            console.error(error.message);
-            return 'Something went wrong';
+    public getNetworkUnit({ network }: { network: NetworkName }): string {
+        // try {
+        //     console.log('network', network);
+        //     await this.connectTo(network);
+        //     return this._api.registry.chainTokens[0];
+        //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // } catch (error: any) {
+        //     console.error(error.message);
+        //     return 'Something went wrong';
+        // }
+        switch (network) {
+            case Network.shiden:
+                return 'SDN';
+
+            case Network.shibuya:
+                return 'SBY';
+
+            case Network.dusty:
+                return 'PLD';
+
+            // Enable after ASTR is launched
+            // case Network.astar:
+            //     return true
+
+            default:
+                return 'SBY';
         }
     }
 
