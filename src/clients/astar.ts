@@ -138,35 +138,35 @@ export class AstarFaucetApi {
             .signAndSend(this._faucetAccount, { nonce: -1 });
     }
 
-    public async getNetworkUnit({ network }: { network: NetworkName }): Promise<string> {
-        try {
-            await this.connectTo(network);
-            const properties = await this._api.rpc.system.properties();
-            const tokenSymbol = properties.tokenSymbol.toJSON() as string[];
-            return tokenSymbol[0];
-            // return await this._api.rpc.system.properties;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
-            console.error(error.message);
-            return 'Something went wrong';
-        }
-        // switch (network) {
-        //     case Network.shiden:
-        //         return 'SDN';
-
-        //     case Network.shibuya:
-        //         return 'SBY';
-
-        //     case Network.dusty:
-        //         return 'PLD';
-
-        //     // Enable after ASTR is launched
-        //     // case Network.astar:
-        //     //     return true
-
-        //     default:
-        //         return 'SBY';
+    public getNetworkUnit({ network }: { network: NetworkName }): string {
+        // try {
+        // await this.connectTo(network);
+        // const properties = await this._api.rpc.system.properties();
+        // const tokenSymbol = properties.tokenSymbol.toJSON() as string[];
+        // return tokenSymbol[0];
+        // return await this._api.rpc.system.properties;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // } catch (error: any) {
+        //     console.error(error.message);
+        //     return 'Something went wrong';
         // }
+        switch (network) {
+            case Network.shiden:
+                return 'SDN';
+
+            case Network.shibuya:
+                return 'SBY';
+
+            case Network.dusty:
+                return 'PLD';
+
+            // Enable after ASTR is launched
+            // case Network.astar:
+            //     return true
+
+            default:
+                return 'SBY';
+        }
     }
 
     public async getBalanceStatus({
