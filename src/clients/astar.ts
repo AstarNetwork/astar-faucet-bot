@@ -140,17 +140,10 @@ export class AstarFaucetApi {
 
     public async getNetworkUnit({ network }: { network: NetworkName }): Promise<string> {
         try {
-            console.log('connect network');
             await this.connectTo(network);
-            console.log('await isReady');
-            await this._api.isReady;
-            console.log('properties()');
-            const properties = await this._api.rpc.system.properties();
-            console.log('tokenSymbol');
-            const tokenSymbol = properties.tokenSymbol.toJSON() as string[];
-            console.log('tokenSymbol[0]', tokenSymbol[0]);
-            return tokenSymbol[0];
-            // return await this._api.rpc.system.properties;
+            const tokenSymbol = formatBalance.getDefaults().unit;
+            console.log('tokenSymbol', tokenSymbol);
+            return tokenSymbol;
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             console.error(error.message);
