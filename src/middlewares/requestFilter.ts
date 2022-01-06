@@ -4,8 +4,7 @@ const redis = new Redis(process.env.REDIS_URL);
 
 // Cooldown time in millisecond.
 // The requester must wait for Cooldown time to request next faucet.
-const testnetCooldownTimeMillisecond = 60 * 60 * 10;
-// const testnetCooldownTimeMillisecond = 60 * 60 * 1000;
+const testnetCooldownTimeMillisecond = 60 * 60 * 1000;
 const mainnetCooldownTimeMillisecond = 60 * 60 * 48 * 1000;
 
 // Check whether the requester can request Faucet or not based on the last request time.
