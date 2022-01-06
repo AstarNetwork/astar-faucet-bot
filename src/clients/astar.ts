@@ -1,4 +1,4 @@
-import { checkIsMainnet } from './../modules/faucet/utils/index';
+import { checkIsMainnet, getTokenUnit } from './../modules/faucet/utils/index';
 import { ApiPromise, WsProvider, Keyring } from '@polkadot/api';
 import { appConfig } from '../config';
 import { formatBalance } from '@polkadot/util';
@@ -138,36 +138,6 @@ export class AstarFaucetApi {
             .signAndSend(this._faucetAccount, { nonce: -1 });
     }
 
-    public async getNetworkUnit({ network }: { network: NetworkName }): Promise<string> {
-        // try {
-        //     await this.connectTo(network);
-        //     const tokenSymbol = formatBalance.getDefaults().unit;
-        //     console.log('tokenSymbol', tokenSymbol);
-        //     return tokenSymbol;
-        //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        // } catch (error: any) {
-        //     console.error(error.message);
-        //     return 'Something went wrong';
-        // }
-        switch (network) {
-            case Network.shiden:
-                return 'SDN';
-
-            case Network.shibuya:
-                return 'SBY';
-
-            case Network.dusty:
-                return 'PLD';
-
-            // Enable after ASTR is launched
-            // case Network.astar:
-            //     return true
-
-            default:
-                return 'SBY';
-        }
-    }
-
     public async getBalanceStatus({
         network,
     }: {
@@ -191,9 +161,8 @@ export class AstarFaucetApi {
 
     public async checkFaucetBalance({ network }: { network: Network }): Promise<{ balance: number; unit: string }> {
         try {
-            const results = await Promise.all([this.getBalanceStatus({ network }), this.getNetworkUnit({ network })]);
-            const { balance, isShortage } = results[0];
-            const unit = results[1];
+            const { balance, isShortage } = await this.getBalanceStatus({ network });
+            const unit = getTokenUnit(network);
 
             const endpoint = process.env.DISCORD_WEBHOOK_URL;
             const mentionId = process.env.DISCORD_MENTION_ID;

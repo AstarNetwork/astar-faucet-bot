@@ -24,6 +24,23 @@ export const checkIsMainnet = (network: Network): boolean => {
     }
 };
 
+export const getTokenUnit = (network: Network): string => {
+    switch (network) {
+        case Network.shiden:
+            return 'SDN';
+        case Network.shibuya:
+            return 'SBY';
+        case Network.dusty:
+            return 'PLD';
+        // Enable after ASTR is launched
+        // case Network.astar:
+        //     return ASTR
+
+        default:
+            return 'SBY';
+    }
+};
+
 export const getFaucetAmount = (network: Network): number => {
     const isMainnet = checkIsMainnet(network);
     const amount = isMainnet ? Number(MAINNET_FAUCET_AMOUNT) : Number(TESTNET_FAUCET_AMOUNT);
@@ -44,26 +61,12 @@ export const generateFaucetId = ({ network, address }: { network: NetworkName; a
     return `${network}:${address}`;
 };
 
-export const getFaucetInfo = async ({
-    network,
-    address,
-    astarApi,
-}: {
-    network: Network;
-    address: string;
-    astarApi: AstarFaucetApi;
-}) => {
+export const getFaucetInfo = async ({ network, address }: { network: Network; address: string }) => {
     const isMainnet = checkIsMainnet(network);
     const requesterId = generateFaucetId({ network, address });
 
-    const results = await Promise.all([
-        getRequestTimestamps({ requesterId, isMainnet }),
-        astarApi.getNetworkUnit({ network }),
-    ]);
-    const timestamps = results[0];
-    const unit = results[1];
-
-    console.log('unit', unit);
+    const timestamps = await getRequestTimestamps({ requesterId, isMainnet });
+    const unit = getTokenUnit(network);
 
     const faucet = {
         amount: getFaucetAmount(network),
