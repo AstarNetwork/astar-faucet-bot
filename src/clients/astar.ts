@@ -139,33 +139,33 @@ export class AstarFaucetApi {
     }
 
     public async getNetworkUnit({ network }: { network: NetworkName }): Promise<string> {
-        try {
-            await this.connectTo(network);
-            const tokenSymbol = formatBalance.getDefaults().unit;
-            console.log('tokenSymbol', tokenSymbol);
-            return tokenSymbol;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
-            console.error(error.message);
-            return 'Something went wrong';
-        }
-        // switch (network) {
-        //     case Network.shiden:
-        //         return 'SDN';
-
-        //     case Network.shibuya:
-        //         return 'SBY';
-
-        //     case Network.dusty:
-        //         return 'PLD';
-
-        //     // Enable after ASTR is launched
-        //     // case Network.astar:
-        //     //     return true
-
-        //     default:
-        //         return 'SBY';
+        // try {
+        //     await this.connectTo(network);
+        //     const tokenSymbol = formatBalance.getDefaults().unit;
+        //     console.log('tokenSymbol', tokenSymbol);
+        //     return tokenSymbol;
+        //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // } catch (error: any) {
+        //     console.error(error.message);
+        //     return 'Something went wrong';
         // }
+        switch (network) {
+            case Network.shiden:
+                return 'SDN';
+
+            case Network.shibuya:
+                return 'SBY';
+
+            case Network.dusty:
+                return 'PLD';
+
+            // Enable after ASTR is launched
+            // case Network.astar:
+            //     return true
+
+            default:
+                return 'SBY';
+        }
     }
 
     public async getBalanceStatus({
