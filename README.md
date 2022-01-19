@@ -25,7 +25,8 @@ FAUCET_SECRET_PHRASE=<secret phrase>
 
 # Faucet send amount
 TESTNET_FAUCET_AMOUNT = '15'
-MAINNET_FAUCET_AMOUNT = '0.002'
+SHIDEN_FAUCET_AMOUNT = '0.001'
+ASTAR_FAUCET_AMOUNT = '0.002'
 
 # Redis URL in URL format
 # In Heroku, this is automatically set when you add the Redis add-on to your app.

@@ -165,6 +165,28 @@
                     "staked": "Balance"
                 }
             }
+        },
+        "astar": {
+            "endpoint": "wss://astar.api.onfinality.io/public-ws",
+            "types": {
+                "Keys": "AccountId",
+                "SmartContract": {
+                    "_enum": {
+                        "Evm": "H160",
+                        "Wasm": "AccountId"
+                    }
+                },
+                "EraStakingPoints": {
+                    "total": "Balance",
+                    "stakers": "BTreeMap<AccountId, Balance>",
+                    "formerStakedEra": "EraIndex",
+                    "claimedRewards": "Balance"
+                },
+                "EraRewardAndStake": {
+                    "rewards": "Balance",
+                    "staked": "Balance"
+                }
+            }
         }
     }
 }
