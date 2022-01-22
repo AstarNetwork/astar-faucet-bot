@@ -30,7 +30,12 @@ export default async function app() {
     await cryptoWaitReady();
     const astarApi = new AstarFaucetApi({ faucetAccountSeed });
 
-    await discordFaucetApp({ token: DISCORD_APP_TOKEN, clientId: DISCORD_APP_CLIENT_ID, astarApi });
+    await discordFaucetApp({
+        token: DISCORD_APP_TOKEN,
+        clientId: DISCORD_APP_CLIENT_ID,
+        astarApi,
+        network: Network.shibuya,
+    });
     await expressApp(astarApi);
 }
 
@@ -49,8 +54,7 @@ const discordFaucetApp = async (appCred: DiscordCredentials) => {
         throw new Error('No seed phrase was provided for the faucet account');
     }
 
-    const network = Network.shibuya;
-    const { astarApi, token, clientId } = appCred;
+    const { astarApi, token, clientId, network } = appCred;
     await refreshSlashCommands(token, clientId, DISCORD_GUILD_ID);
     const clientApp = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
