@@ -1,6 +1,6 @@
 import { BN } from '@polkadot/util';
 import { ethers } from 'ethers';
-import { MAINNET_FAUCET_AMOUNT, TESTNET_FAUCET_AMOUNT } from '..';
+import { FAUCET_AMOUNT } from '../index';
 import { AstarFaucetApi, ASTAR_TOKEN_DECIMALS, Network, NetworkName } from '../../../clients';
 import { canRequestFaucet, getRequestTimestamps, logRequest } from '../../../middlewares';
 
@@ -9,15 +9,14 @@ export const checkIsMainnet = (network: Network): boolean => {
         case Network.shiden:
             return true;
 
+        case Network.astar:
+            return true;
+
         case Network.shibuya:
             return false;
 
         case Network.dusty:
             return false;
-
-        // Enable after ASTR is launched
-        // case Network.astar:
-        //     return true
 
         default:
             return false;
@@ -32,9 +31,8 @@ export const getTokenUnit = (network: Network): string => {
             return 'SBY';
         case Network.dusty:
             return 'PLD';
-        // Enable after ASTR is launched
-        // case Network.astar:
-        //     return ASTR
+        case Network.astar:
+            return 'ASTR';
 
         default:
             return 'SBY';
@@ -42,9 +40,7 @@ export const getTokenUnit = (network: Network): string => {
 };
 
 export const getFaucetAmount = (network: Network): number => {
-    const isMainnet = checkIsMainnet(network);
-    const amount = isMainnet ? Number(MAINNET_FAUCET_AMOUNT) : Number(TESTNET_FAUCET_AMOUNT);
-    return amount;
+    return FAUCET_AMOUNT[network];
 };
 
 export const verifyNetwork = (network: string): true | Error => {
@@ -92,9 +88,8 @@ export const sendFaucet = async ({
     });
     await canRequestFaucet(requesterId, now, isMainnet);
 
-    const amount = isMainnet ? MAINNET_FAUCET_AMOUNT : TESTNET_FAUCET_AMOUNT;
+    const amount = FAUCET_AMOUNT[network];
     const dripAmount = ethers.utils.parseUnits(amount.toString(), ASTAR_TOKEN_DECIMALS).toString();
-
     const result = await astarApi.sendTokenTo({ to: address, network, dripAmount: new BN(dripAmount) });
 
     await logRequest(requesterId, now, isMainnet);

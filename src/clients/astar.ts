@@ -1,22 +1,23 @@
-import { checkIsMainnet, getTokenUnit } from './../modules/faucet/utils/index';
-import { ApiPromise, WsProvider, Keyring } from '@polkadot/api';
-import { appConfig } from '../config';
+import { ApiPromise, Keyring, WsProvider } from '@polkadot/api';
+import type { KeyringPair } from '@polkadot/keyring/types';
 import { formatBalance } from '@polkadot/util';
 import { evmToAddress } from '@polkadot/util-crypto';
-import type { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
-import { checkAddressType } from '../helpers';
-import { ethers } from 'ethers';
-import { MAINNET_FAUCET_AMOUNT, TESTNET_FAUCET_AMOUNT } from '../modules/faucet';
 import dedent from 'dedent';
+import { ethers } from 'ethers';
+import { appConfig } from '../config';
+import { checkAddressType } from '../helpers';
 import { postDiscordMessage } from '../modules/bot';
+import { FAUCET_AMOUNT } from '../modules/faucet';
+import { getTokenUnit } from './../modules/faucet';
 export enum Network {
+    astar = 'astar',
     shiden = 'shiden',
     shibuya = 'shibuya',
     dusty = 'dusty',
 }
 
-export type NetworkName = Network.dusty | Network.shibuya | Network.shiden;
+export type NetworkName = Network.dusty | Network.shibuya | Network.shiden | Network.astar;
 
 export interface FaucetOption {
     faucetAccountSeed: string;
@@ -143,9 +144,9 @@ export class AstarFaucetApi {
     }: {
         network: NetworkName;
     }): Promise<{ balance: number; isShortage: boolean }> {
-        const isMainnet = checkIsMainnet(network);
         const numOfTimes = 50;
-        const threshold = isMainnet ? MAINNET_FAUCET_AMOUNT * numOfTimes : TESTNET_FAUCET_AMOUNT * numOfTimes;
+        const faucetAmount = FAUCET_AMOUNT[network];
+        const threshold = faucetAmount * numOfTimes;
         try {
             await this.connectTo(network);
             const account = await this._api.query.system.account(this._faucetAccount.address);
