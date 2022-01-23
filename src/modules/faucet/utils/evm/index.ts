@@ -1,7 +1,10 @@
+import { postDiscordMessage } from './../../../bot/index';
 import Web3 from 'web3';
 import { TransactionConfig } from 'web3-eth';
+import { getTokenUnit } from '..';
 import { Network } from '../../../../clients';
-import { evmFaucetPrivateKey } from './../../index';
+import { evmFaucetPrivateKey, FAUCET_AMOUNT, safeBalOfTxTimes } from './../../index';
+import dedent from 'dedent';
 
 export const createWeb3Instance = (network: Network) => {
     return new Web3(
@@ -13,6 +16,37 @@ export const createWeb3Instance = (network: Network) => {
                 : 'https://rpc.shibuya.astar.network:8545',
         ),
     );
+};
+
+const checkIsShortage = async ({
+    balance,
+    network,
+    address,
+}: {
+    balance: number;
+    network: Network;
+    address: string;
+}): Promise<boolean> => {
+    const numOfTimes = safeBalOfTxTimes;
+    const faucetAmount = FAUCET_AMOUNT[network];
+    const threshold = faucetAmount * numOfTimes;
+    const isShortage = threshold > balance;
+
+    const endpoint = process.env.DISCORD_WEBHOOK_URL;
+    const mentionId = process.env.DISCORD_MENTION_ID;
+    const unit = getTokenUnit(network);
+
+    if (endpoint && isShortage) {
+        const mention = mentionId && `<${mentionId}>`;
+        const text = dedent`
+                    ⚠️ The faucet wallet will run out of balance soon ${mention}
+                    Address: ${address}
+                    Balance: ${balance.toFixed(0)} ${unit}
+                    `;
+        postDiscordMessage({ text, endpoint });
+    }
+
+    return isShortage;
 };
 
 export const evmFaucet = async ({
@@ -54,6 +88,10 @@ export const evmFaucet = async ({
     }
 
     const { blockNumber, blockHash } = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+
+    const balance = await web3.eth.getBalance(hotWallet.address);
+    const formattedBalance = web3.utils.fromWei(balance, 'ether');
+    await checkIsShortage({ network, address, balance: Number(formattedBalance) });
 
     return { blockNumber, blockHash };
 };

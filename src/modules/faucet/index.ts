@@ -9,3 +9,6 @@ export const FAUCET_AMOUNT = {
     [Network.shibuya]: Number(process.env.TESTNET_FAUCET_AMOUNT),
     [Network.dusty]: Number(process.env.TESTNET_FAUCET_AMOUNT),
 };
+
+// Memo: Use it to send the warning msg on Discord whenever the faucet hot wallet balance less than 50 times of the tx.
+export const safeBalOfTxTimes = 50;
