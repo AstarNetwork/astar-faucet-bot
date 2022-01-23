@@ -23,6 +23,9 @@ DISCORD_FAUCET_CHANNEL_ID=<channel id>
 # Secret phrase (mnemonic) for the faucet account
 FAUCET_SECRET_PHRASE=<secret phrase>
 
+# Private key for the EVM faucet account
+EVM_FAUCET_PRIVATE_KEY=<private key>
+
 # Faucet send amount
 TESTNET_FAUCET_AMOUNT = '15'
 SHIDEN_FAUCET_AMOUNT = '0.002'
