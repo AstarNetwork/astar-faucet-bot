@@ -3,6 +3,8 @@ import { ethers } from 'ethers';
 import { FAUCET_AMOUNT } from '../index';
 import { AstarFaucetApi, ASTAR_TOKEN_DECIMALS, Network, NetworkName } from '../../../clients';
 import { canRequestFaucet, getRequestTimestamps, logRequest } from '../../../middlewares';
+import { isEthereumAddress } from '@polkadot/util-crypto';
+import { evmFaucet } from './evm';
 
 export const checkIsMainnet = (network: Network): boolean => {
     switch (network) {
@@ -90,8 +92,18 @@ export const sendFaucet = async ({
 
     const amount = FAUCET_AMOUNT[network];
     const dripAmount = ethers.utils.parseUnits(amount.toString(), ASTAR_TOKEN_DECIMALS).toString();
-    const result = await astarApi.sendTokenTo({ to: address, network, dripAmount: new BN(dripAmount) });
+    let hash = '';
 
-    await logRequest(requesterId, now, isMainnet);
-    return result.hash.toString();
+    if (isEthereumAddress(address)) {
+        const { blockNumber, blockHash } = await evmFaucet({ network, address, dripAmount });
+        // Memo: store the log after the tx is confirmed
+        blockNumber > 0 && (await logRequest(requesterId, now, isMainnet));
+        hash = blockHash;
+    } else {
+        const result = await astarApi.sendTokenTo({ to: address, network, dripAmount: new BN(dripAmount) });
+        hash = result.hash.toString();
+        await logRequest(requesterId, now, isMainnet);
+    }
+
+    return hash;
 };

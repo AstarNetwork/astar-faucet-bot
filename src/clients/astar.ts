@@ -1,3 +1,4 @@
+import { safeBalOfTxTimes } from './../modules/faucet/index';
 import { ApiPromise, Keyring, WsProvider } from '@polkadot/api';
 import type { KeyringPair } from '@polkadot/keyring/types';
 import { formatBalance } from '@polkadot/util';
@@ -144,7 +145,7 @@ export class AstarFaucetApi {
     }: {
         network: NetworkName;
     }): Promise<{ balance: number; isShortage: boolean }> {
-        const numOfTimes = 50;
+        const numOfTimes = safeBalOfTxTimes;
         const faucetAmount = FAUCET_AMOUNT[network];
         const threshold = faucetAmount * numOfTimes;
         try {
