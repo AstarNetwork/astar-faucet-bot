@@ -71,6 +71,10 @@ export const evmFaucet = async ({
     }
 
     const hotWallet = web3.eth.accounts.privateKeyToAccount(privateKey);
+    const balance = await web3.eth.getBalance(hotWallet.address);
+    const formattedBalance = web3.utils.fromWei(balance, 'ether');
+    await checkIsShortage({ network, address: hotWallet.address, balance: Number(formattedBalance) });
+
     const transaction: TransactionConfig = {
         nonce: await web3.eth.getTransactionCount(hotWallet.address),
         value: web3.utils.toHex(dripAmount),
@@ -88,10 +92,6 @@ export const evmFaucet = async ({
     }
 
     const { blockNumber, blockHash } = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
-
-    const balance = await web3.eth.getBalance(hotWallet.address);
-    const formattedBalance = web3.utils.fromWei(balance, 'ether');
-    await checkIsShortage({ network, address: hotWallet.address, balance: Number(formattedBalance) });
 
     return { blockNumber, blockHash };
 };
