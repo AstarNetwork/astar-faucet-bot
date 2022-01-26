@@ -91,7 +91,7 @@ export const evmFaucet = async ({
 
     const balance = await web3.eth.getBalance(hotWallet.address);
     const formattedBalance = web3.utils.fromWei(balance, 'ether');
-    await checkIsShortage({ network, address, balance: Number(formattedBalance) });
+    await checkIsShortage({ network, address: hotWallet.address, balance: Number(formattedBalance) });
 
     return { blockNumber, blockHash };
 };
