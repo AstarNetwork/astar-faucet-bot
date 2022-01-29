@@ -4,12 +4,7 @@ import { AstarFaucetApi, Network } from '.';
 import { getFaucetInfo, sendFaucet } from '../modules/faucet';
 import { appOauthInstallUrl } from './discord';
 
-const whitelist = [
-    'http://localhost:8080',
-    'http://localhost:8081',
-    'https://portal.astar.network',
-    'https://deploy-preview-pr-',
-];
+const whitelist = ['http://localhost:8080', 'http://localhost:8081', 'https://portal.astar.network'];
 
 /**
  * Handles client request via Express.js. These are usually for custom endpoints or OAuth and app installation.
@@ -39,7 +34,10 @@ export const expressApp = async (astarApi: AstarFaucetApi) => {
 
     app.post('/:network/drip', async (req, res) => {
         try {
-            if (!whitelist.includes(String(req.headers.origin))) {
+            const origin = String(req.headers.origin);
+            const listedOrigin = whitelist.find((it) => it === origin);
+            const isHeroku = origin.includes('https://deploy-preview-pr-');
+            if (!listedOrigin && !isHeroku) {
                 throw Error('invalid request');
             }
             const network: Network = req.params.network as Network;
