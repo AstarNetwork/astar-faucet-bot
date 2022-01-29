@@ -4,6 +4,13 @@ import { AstarFaucetApi, Network } from '.';
 import { getFaucetInfo, sendFaucet } from '../modules/faucet';
 import { appOauthInstallUrl } from './discord';
 
+const whitelist = [
+    'http://localhost:8080',
+    'http://localhost:8081',
+    'https://portal.astar.network',
+    'https://deploy-preview-pr-',
+];
+
 /**
  * Handles client request via Express.js. These are usually for custom endpoints or OAuth and app installation.
  * We didn't hook this up to any database, so for out-of-the-box usage, you can hard-code the guild ID and other credentials in a .env file
@@ -32,6 +39,9 @@ export const expressApp = async (astarApi: AstarFaucetApi) => {
 
     app.post('/:network/drip', async (req, res) => {
         try {
+            if (!whitelist.includes(String(req.headers.origin))) {
+                throw Error('invalid request');
+            }
             const network: Network = req.params.network as Network;
             const address: string = req.body.destination as string;
             const hash = await sendFaucet({ address, network, astarApi });
