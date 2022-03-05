@@ -12,7 +12,7 @@ export const createWeb3Instance = (network: Network) => {
             network === Network.astar
                 ? 'https://rpc.astar.network:8545'
                 : network === Network.shiden
-                ? 'https://rpc.shiden.astar.network:8545'
+                ? 'https://evm.shiden.astar.network'
                 : 'https://rpc.shibuya.astar.network:8545',
         ),
     );
