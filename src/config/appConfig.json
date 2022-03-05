@@ -167,7 +167,7 @@
             }
         },
         "astar": {
-            "endpoint": "wss://astar.api.onfinality.io/public-ws",
+            "endpoint": "wss://rpc.astar.network",
             "types": {
                 "Keys": "AccountId",
                 "SmartContract": {
