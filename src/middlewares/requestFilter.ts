@@ -1,6 +1,10 @@
 import Redis from 'ioredis';
 import { DateTime } from 'luxon';
-const redis = new Redis(process.env.REDIS_URL);
+const redis = new Redis(process.env.REDIS_URL, {
+    tls: {
+        rejectUnauthorized: false,
+    },
+});
 
 // Cooldown time in millisecond.
 // The requester must wait for Cooldown time to request next faucet.
