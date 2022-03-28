@@ -2,8 +2,8 @@ import Redis from 'ioredis';
 import { DateTime } from 'luxon';
 const redis = new Redis(process.env.REDIS_URL, {
     tls: {
-        rejectUnauthorized: false
-    }
+        rejectUnauthorized: false,
+    },
 });
 
 // Cooldown time in millisecond.
