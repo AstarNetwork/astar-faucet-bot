@@ -31,11 +31,8 @@ export const getTokenUnit = (network: Network): string => {
             return 'SDN';
         case Network.shibuya:
             return 'SBY';
-        case Network.dusty:
-            return 'PLD';
         case Network.astar:
             return 'ASTR';
-
         default:
             return 'SBY';
     }
@@ -82,6 +79,7 @@ export const sendFaucet = async ({
     network: NetworkName;
     astarApi: AstarFaucetApi;
 }): Promise<string> => {
+    // todo: refactor this function to be scalable
     const isMainnet = checkIsMainnet(network);
     const now = Date.now();
     const requesterId = generateFaucetId({

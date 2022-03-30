@@ -1,8 +1,18 @@
 import { Network } from './astar';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
-import { AstarFaucetApi } from '.';
-import { DISCORD_APP_CLIENT_ID, appConfig } from '../config';
+import { AstarFaucetApi, ASTAR_TOKEN_DECIMALS, NetworkName } from '.';
+import {
+    appConfig,
+    DISCORD_APP_CLIENT_ID,
+    DISCORD_APP_TOKEN,
+    DISCORD_FAUCET_CHANNEL_ID,
+    DISCORD_GUILD_ID,
+} from '../config';
+import { canRequestFaucet, logRequest } from '../middlewares';
+import { FAUCET_AMOUNT } from '../modules/faucet';
+import BN from 'bn.js';
+import { Client, Intents, Interaction } from 'discord.js';
 
 export interface DiscordCredentials {
     token: string;
@@ -40,4 +50,84 @@ export const refreshSlashCommands = async (appToken: string, appClientId: string
     } catch (error) {
         console.error(error);
     }
+};
+
+/**
+ * The main controller for Discord API requests. Everything that is done from Discord should be written here
+ */
+export const discordFaucetApp = async (appCred: DiscordCredentials) => {
+    // todo: refactor this to handle multiple guilds
+    if (!DISCORD_GUILD_ID || !DISCORD_FAUCET_CHANNEL_ID) {
+        throw new Error(
+            'No server information was given, please set the environment variable DISCORD_GUILD_ID and DISCORD_FAUCET_CHANNEL_ID',
+        );
+    }
+
+    if (!process.env.FAUCET_SECRET_PHRASE) {
+        throw new Error('No seed phrase was provided for the faucet account');
+    }
+
+    const { astarApi, token, clientId, network } = appCred;
+    await refreshSlashCommands(token, clientId, DISCORD_GUILD_ID);
+    const clientApp = new Client({ intents: [Intents.FLAGS.GUILDS] });
+
+    // send 30 testnet tokens per call
+    const oneToken = new BN(10).pow(new BN(ASTAR_TOKEN_DECIMALS));
+    const dripAmount = new BN(FAUCET_AMOUNT[network]).mul(oneToken);
+    await astarApi.connectTo(network);
+
+    clientApp.on('ready', async () => {
+        if (clientApp.user) {
+            console.log(`${clientApp.user.tag} is ready!`);
+        } else {
+            console.log(`Failed to login to Discord`);
+        }
+    });
+
+    // handle faucet token request
+    clientApp.on('interactionCreate', async (interaction: Interaction) => {
+        if (!interaction.isCommand() || interaction.channelId !== DISCORD_FAUCET_CHANNEL_ID) return;
+
+        const { commandName } = interaction;
+
+        if (commandName === 'drip') {
+            // note: the values are based on `src/config/appConfig.json`
+            const networkName = interaction.options.data[0]?.value as NetworkName;
+            const address = interaction.options.data[1]?.value;
+            try {
+                if (!address || typeof address !== 'string' || !networkName) {
+                    throw new Error('No address was given!');
+                }
+
+                // Send 'Waiting' message to the user
+                await interaction.deferReply();
+
+                // Check if the user has already requested tokens or not
+                const requesterId = interaction.user.id;
+                const now = Date.now();
+                await canRequestFaucet(requesterId, now);
+                await astarApi.sendTokenTo({ to: address, dripAmount, network });
+
+                // Send token to the requester
+                console.log(`Sending ${astarApi.formatBalance(dripAmount)} to ${address}`);
+
+                const remainingFunds = await astarApi.getFaucetBalance();
+                await interaction.editReply(
+                    `Sent ${astarApi.formatBalance(
+                        dripAmount,
+                    )} to \`${address}\`. Please wait until the transaction gets finalized.\nRemaining funds: \`${remainingFunds}\`\nPlease send unused tokens back to the faucet \`${
+                        astarApi.faucetAccount.address
+                    }\``,
+                );
+
+                // Log the faucet request.
+                await logRequest(requesterId, now);
+            } catch (err) {
+                console.warn(err);
+                await interaction.editReply({ content: `${err}` });
+            }
+        }
+    });
+
+    await clientApp.login(DISCORD_APP_TOKEN);
 };

@@ -18,7 +18,7 @@ export const expressApp = async (astarApi: AstarFaucetApi) => {
     const port = process.env.PORT || 8080;
     const installUrl = appOauthInstallUrl();
 
-    // show application install link
+    // show application install link for Discord
     app.get('/install', (_req, res) => {
         // redirect to app install page
         return res.redirect(installUrl);
@@ -27,7 +27,8 @@ export const expressApp = async (astarApi: AstarFaucetApi) => {
         //return res.status(200).json({ url: installUrl });
     });
 
-    app.get('/oauth2', async ({ query }, res) => {
+    // for testing
+    app.get('/oauth2', async ({ query }, _res) => {
         const { code } = query;
         console.log(code);
     });
@@ -36,12 +37,19 @@ export const expressApp = async (astarApi: AstarFaucetApi) => {
         try {
             const origin = String(req.headers.origin);
             const listedOrigin = whitelist.find((it) => it === origin);
+
+            // todo: refactor to make this generic
             const isHeroku = origin.includes('https://deploy-preview-pr-');
+
             if (!listedOrigin && !isHeroku) {
                 throw Error('invalid request');
             }
+
+            // parse the name of the network
             const network: Network = req.params.network as Network;
+            // parse the faucet drip destination
             const address: string = req.body.destination as string;
+
             const hash = await sendFaucet({ address, network, astarApi });
             return res.status(200).json({ hash });
 
