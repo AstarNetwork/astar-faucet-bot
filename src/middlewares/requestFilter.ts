@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import { DateTime } from 'luxon';
-const redis = new Redis(process.env.REDIS_URL, {
+const redis = new Redis(parseInt(process.env.PORT || '8080'), process.env.REDIS_URL || '', {
     tls: {
         rejectUnauthorized: false,
     },

@@ -1,7 +1,7 @@
 import { Network } from './astar';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
-import { AstarFaucetApi, ASTAR_TOKEN_DECIMALS, NetworkName } from '.';
+import { AstarFaucetApi, NetworkName } from '.';
 import {
     appConfig,
     DISCORD_APP_CLIENT_ID,
@@ -10,15 +10,12 @@ import {
     DISCORD_GUILD_ID,
 } from '../config';
 import { canRequestFaucet, logRequest } from '../middlewares';
-import { FAUCET_AMOUNT } from '../modules/faucet';
-import BN from 'bn.js';
 import { Client, Intents, Interaction } from 'discord.js';
 
 export interface DiscordCredentials {
     token: string;
     clientId: string;
     astarApi: AstarFaucetApi;
-    network: Network;
 }
 
 const concatBotScope = (scopes: string[]) => {
@@ -63,18 +60,11 @@ export const discordFaucetApp = async (appCred: DiscordCredentials) => {
         );
     }
 
-    if (!process.env.FAUCET_SECRET_PHRASE) {
-        throw new Error('No seed phrase was provided for the faucet account');
-    }
-
-    const { astarApi, token, clientId, network } = appCred;
+    const { astarApi, token, clientId } = appCred;
     await refreshSlashCommands(token, clientId, DISCORD_GUILD_ID);
     const clientApp = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
-    // send 30 testnet tokens per call
-    const oneToken = new BN(10).pow(new BN(ASTAR_TOKEN_DECIMALS));
-    const dripAmount = new BN(FAUCET_AMOUNT[network]).mul(oneToken);
-    await astarApi.connectTo(network);
+    //await astarApi.connectTo(network);
 
     clientApp.on('ready', async () => {
         if (clientApp.user) {
@@ -105,23 +95,23 @@ export const discordFaucetApp = async (appCred: DiscordCredentials) => {
                 // Check if the user has already requested tokens or not
                 const requesterId = interaction.user.id;
                 const now = Date.now();
-                await canRequestFaucet(requesterId, now);
-                await astarApi.sendTokenTo({ to: address, dripAmount, network });
+                //await canRequestFaucet(requesterId, now);
+
+                const dripAmount = astarApi.faucetAmount.toString();
+
+                //await astarApi.sendTokenTo({ to: address, dripAmount, network });
+                await astarApi.drip(address);
 
                 // Send token to the requester
-                console.log(`Sending ${astarApi.formatBalance(dripAmount)} to ${address}`);
+                console.log(`Sending ${dripAmount} ${astarApi.chainProperty.tokenSymbols[0]} to ${address}`);
 
-                const remainingFunds = await astarApi.getFaucetBalance();
+                const remainingFunds = await astarApi.getBalance();
                 await interaction.editReply(
-                    `Sent ${astarApi.formatBalance(
-                        dripAmount,
-                    )} to \`${address}\`. Please wait until the transaction gets finalized.\nRemaining funds: \`${remainingFunds}\`\nPlease send unused tokens back to the faucet \`${
-                        astarApi.faucetAccount.address
-                    }\``,
+                    `Sent ${dripAmount} to \`${address}\`. Please wait until the transaction gets finalized.\nRemaining funds: \`${remainingFunds}\`\nPlease send unused tokens back to the faucet \`${astarApi.faucetAccount.address}\``,
                 );
 
                 // Log the faucet request.
-                await logRequest(requesterId, now);
+                //await logRequest(requesterId, now);
             } catch (err) {
                 console.warn(err);
                 await interaction.editReply({ content: `${err}` });
