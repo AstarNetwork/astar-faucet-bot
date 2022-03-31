@@ -67,7 +67,7 @@
         "shiden": {
             "endpoint": "wss://rpc.shiden.astar.network",
             "amount": 0.002,
-            "requestTimeout": 86400,
+            "requestTimeout": 172800,
             "types": {
                 "Keys": "AccountId",
                 "SmartContract": {
@@ -91,7 +91,7 @@
         "astar": {
             "endpoint": "wss://rpc.astar.network",
             "amount": 0.002,
-            "requestTimeout": 86400,
+            "requestTimeout": 172800,
             "types": {
                 "Keys": "AccountId",
                 "SmartContract": {
