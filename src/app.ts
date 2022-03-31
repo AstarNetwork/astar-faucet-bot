@@ -42,6 +42,7 @@ export default async function app() {
         shibuyaApi,
     };
 
+    /*
     // only start the discord bot if there is a API token
     if (DISCORD_APP_TOKEN && DISCORD_APP_CLIENT_ID) {
         // throw new Error('No app tokens or ID were given!');
@@ -51,6 +52,7 @@ export default async function app() {
             apis: networks,
         });
     }
+    */
 
     // start the express app
     await expressApp(networks);

@@ -188,7 +188,6 @@ export class AstarFaucetApi {
         const hash = (await this.signAndSend(dripTx)).toString();
 
         this._faucetLedger[address] = Date.now();
-        console.log(this._faucetLedger[address]);
         return hash;
     }
 
