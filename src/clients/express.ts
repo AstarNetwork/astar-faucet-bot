@@ -43,7 +43,6 @@ export const expressApp = async (apis: NetworkApis) => {
             const origin = String(req.headers.origin);
             const listedOrigin = whitelist.find((it) => it === origin);
 
-            
             const isHeroku = origin.includes('https://deploy-preview-pr-');
 
             if (!listedOrigin && !isHeroku) {
@@ -54,12 +53,11 @@ export const expressApp = async (apis: NetworkApis) => {
             const network: Network = req.params.network as Network;
             // parse the faucet drip destination
             const address: string = req.body.destination as string;
-
+            // todo: refactor this to implement the command pattern
             let hash = '';
             // i know this is not a clean solution :(
             switch (network) {
                 case Network.astar:
-                    //const hash = await sendFaucet({ address, network, astarApi });
                     hash = await astarApi.drip(address);
                     break;
                 case Network.shiden:

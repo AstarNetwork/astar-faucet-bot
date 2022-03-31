@@ -18,21 +18,21 @@ export default async function app() {
     const astarApi = await new AstarFaucetApi({
         mnemonic: faucetAccountSeed,
         endpoint: appConfig.network['astar'].endpoint,
-        requestTimeout: 180,
+        requestTimeout: appConfig.network['astar'].requestTimeout,
         faucetAmount: appConfig.network['astar'].amount,
     }).start();
 
     const shidenApi = await new AstarFaucetApi({
         mnemonic: faucetAccountSeed,
         endpoint: appConfig.network['shiden'].endpoint,
-        requestTimeout: 180,
+        requestTimeout: appConfig.network['shiden'].requestTimeout,
         faucetAmount: appConfig.network['shiden'].amount,
     }).start();
 
     const shibuyaApi = await new AstarFaucetApi({
         mnemonic: faucetAccountSeed,
         endpoint: appConfig.network['shibuya'].endpoint,
-        requestTimeout: 180,
+        requestTimeout: appConfig.network['shibuya'].requestTimeout,
         faucetAmount: appConfig.network['shibuya'].amount,
     }).start();
 
@@ -42,7 +42,6 @@ export default async function app() {
         shibuyaApi,
     };
 
-    /*
     // only start the discord bot if there is a API token
     if (DISCORD_APP_TOKEN && DISCORD_APP_CLIENT_ID) {
         // throw new Error('No app tokens or ID were given!');
@@ -52,7 +51,6 @@ export default async function app() {
             apis: networks,
         });
     }
-    */
 
     // start the express app
     await expressApp(networks);

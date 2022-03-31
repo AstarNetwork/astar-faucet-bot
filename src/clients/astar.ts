@@ -36,6 +36,7 @@ export class AstarFaucetApi {
 
     private _requestTimeout: number;
     // a key-value pair of address and last request timestamp
+    // note: because this is stored in memory, resetting the bot will reset the history too
     private _faucetLedger: { [key: string]: number } = {};
     private _faucetAmount: number;
 
