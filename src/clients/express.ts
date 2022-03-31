@@ -38,17 +38,16 @@ export const expressApp = async (apis: NetworkApis) => {
 
     app.post('/:network/drip', async (req, res) => {
         try {
-            // todo: refactor to make this generic
-            /*
+            // todo: refactor to make this generic instead of hard coding
             const origin = String(req.headers.origin);
             const listedOrigin = whitelist.find((it) => it === origin);
 
+            // for portal staging environments
             const isHeroku = origin.includes('https://deploy-preview-pr-');
 
             if (!listedOrigin && !isHeroku) {
                 throw Error('invalid request');
             }
-            */
             // parse the name of the network
             const network: Network = req.params.network as Network;
             // parse the faucet drip destination
