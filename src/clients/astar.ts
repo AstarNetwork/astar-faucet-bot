@@ -1,39 +1,64 @@
-import { safeBalOfTxTimes } from './../modules/faucet/index';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import * as helpers from '../helpers';
 import { ApiPromise, Keyring, WsProvider } from '@polkadot/api';
+import { ApiTypes, SignerOptions, SubmittableExtrinsic } from '@polkadot/api/types';
 import type { KeyringPair } from '@polkadot/keyring/types';
 import { formatBalance } from '@polkadot/util';
-import { evmToAddress } from '@polkadot/util-crypto';
+import { evmToAddress, mnemonicGenerate, checkAddress, isEthereumAddress, isAddress } from '@polkadot/util-crypto';
 import BN from 'bn.js';
-import dedent from 'dedent';
-import { ethers } from 'ethers';
-import { appConfig } from '../config';
-import { checkAddressType } from '../helpers';
-import { postDiscordMessage } from '../modules/bot';
-import { FAUCET_AMOUNT } from '../modules/faucet';
-import { getTokenUnit } from './../modules/faucet';
-export enum Network {
-    astar = 'astar',
-    shiden = 'shiden',
-    shibuya = 'shibuya',
-    dusty = 'dusty',
-}
 
-export type NetworkName = Network.dusty | Network.shibuya | Network.shiden | Network.astar;
+export type ExtrinsicPayload = SubmittableExtrinsic<'promise'>;
 
 export interface FaucetOption {
-    faucetAccountSeed: string;
+    endpoint: string;
+    mnemonic: string;
+    // waiting time for the faucet request in seconds
+    requestTimeout: number;
+    faucetDripAmount: number;
 }
 
 // ss58 address prefix
 export const ASTAR_SS58_FORMAT = 5;
 
-export const ASTAR_TOKEN_DECIMALS = 18;
+const AUTO_CONNECT_MS = 10_000; // [ms]
+interface ChainProperty {
+    tokenSymbols: string[];
+    tokenDecimals: number[];
+    chainName: string;
+}
 
-export class AstarFaucetApi {
-    private _keyring: Keyring;
+export class FaucetApi {
     private _faucetAccount: KeyringPair;
+    private _provider: WsProvider;
     private _api: ApiPromise;
-    // token amount to send from the faucet per request
+    private _keyring: Keyring;
+    private _chainProperty: ChainProperty;
+
+    private _requestTimeout: number;
+    // a key-value pair of address and last request timestamp
+    // note: because this is stored in memory, resetting the bot will reset the history too
+    private _faucetLedger: { [key: string]: number } = {};
+    private _faucetDripAmount: number;
+
+    constructor(options: FaucetOption) {
+        this._provider = new WsProvider(options.endpoint, AUTO_CONNECT_MS);
+        this._keyring = new Keyring({ type: 'sr25519' });
+
+        // note: the ledger is recorded in milliseconds
+        this._requestTimeout = options.requestTimeout * 1000;
+        this._faucetDripAmount = options.faucetDripAmount;
+
+        console.log('connecting to ' + options.endpoint);
+        this._api = new ApiPromise({
+            provider: this._provider,
+        });
+
+        //this._keyring = new Keyring({ type: 'sr25519', ss58Format: ASTAR_SS58_FORMAT });
+        // create a random account if no mnemonic was provided
+        this._faucetAccount = this._keyring.addFromUri(options.mnemonic || mnemonicGenerate(), {
+            name: 'Astar Faucet',
+        });
+    }
 
     public get faucetAccount() {
         return this._faucetAccount;
@@ -43,146 +68,180 @@ export class AstarFaucetApi {
         return this._api;
     }
 
-    constructor(options: FaucetOption) {
-        this._keyring = new Keyring({ type: 'sr25519', ss58Format: ASTAR_SS58_FORMAT });
-        this._faucetAccount = this._keyring.addFromUri(options.faucetAccountSeed, { name: 'Astar Faucet' });
-        //this._api = new ApiPromise();
+    public get chainProperty() {
+        return this._chainProperty;
     }
 
-    public async connectTo(networkName: NetworkName) {
-        // get chain endpoint and types from the config file
-        const endpoint = appConfig.network[networkName].endpoint;
-        const chainMetaTypes = appConfig.network[networkName].types;
-
-        // establish node connection with the endpoint
-        const provider = new WsProvider(endpoint);
-        const api = new ApiPromise({
-            provider,
-            types: chainMetaTypes,
-        });
-
-        const apiInst = await api.isReady;
-
-        // get chain metadata
-        const { tokenSymbol } = await apiInst.rpc.system.properties();
-        const unit = tokenSymbol.unwrap()[0].toString();
-
-        // set token display format
-        formatBalance.setDefaults({
-            unit,
-            decimals: ASTAR_TOKEN_DECIMALS, // we can get this directly from the chain too
-        });
-
-        // subscribe to account balance changes
-        // await apiInst.query.system.account(this._faucetAccount.address, ({ data }) => {
-        //     const faucetReserve = formatBalance(data.free.toBn(), {
-        //         withSi: true,
-        //         withUnit: true,
-        //     });
-        //     console.log(`Faucet has ${faucetReserve}`);
-        // });
-
-        this._api = apiInst;
-
-        return apiInst;
+    public get faucetAmountFormatted() {
+        const formattedAmount = this.formatBalance(
+            helpers.tokenToMinimalDenom(this._faucetDripAmount, this._chainProperty.tokenDecimals[0]).toString(),
+        );
+        return formattedAmount;
+    }
+    public get faucetAmountNum() {
+        return this._faucetDripAmount;
     }
 
-    public async getFaucetBalance() {
+    public async start() {
+        this._api = await this._api.isReady;
+
+        const chainProperties = await this._api.rpc.system.properties();
+
+        const ss58Format = chainProperties.ss58Format.unwrapOrDefault().toNumber();
+
+        const tokenDecimals = chainProperties.tokenDecimals
+            .unwrapOrDefault()
+            .toArray()
+            .map((i) => i.toNumber());
+
+        const tokenSymbols = chainProperties.tokenSymbol
+            .unwrapOrDefault()
+            .toArray()
+            .map((i) => i.toString());
+
+        const chainName = (await this._api.rpc.system.chain()).toString();
+
+        console.log(`connected to ${chainName} with account ${this.faucetAccount.address}`);
+
+        this._chainProperty = {
+            tokenSymbols,
+            tokenDecimals,
+            chainName,
+        };
+        this._keyring.setSS58Format(ss58Format);
+
+        return this;
+    }
+
+    public async getBlockHash(blockNumber: number) {
+        return await this._api?.rpc.chain.getBlockHash(blockNumber);
+    }
+
+    public transfer(dest: string, balance: BN): SubmittableExtrinsic<ApiTypes> {
+        const ext = this._api?.tx.balances.transferKeepAlive(dest, balance);
+        if (ext) return ext;
+        throw new Error('Undefined transfer');
+    }
+
+    public buildTxCall(extrinsic: string, method: string, ...args: any[]): ExtrinsicPayload {
+        const ext = this._api?.tx[extrinsic][method](...args);
+        if (ext) return ext;
+        throw new Error(`Undefined extrinsic call ${extrinsic} with method ${method}`);
+    }
+
+    public buildStorageQuery(extrinsic: string, method: string, ...args: any[]) {
+        const ext = this._api?.query[extrinsic][method](...args);
+        if (ext) return ext;
+        throw new Error(`Undefined storage query ${extrinsic} for method ${method}`);
+    }
+
+    public async nonce(): Promise<number | undefined> {
+        return ((await this._api?.query.system.account(this.faucetAccount.address)) as any)?.nonce.toNumber();
+    }
+
+    public wrapBatchAll(txs: ExtrinsicPayload[]): ExtrinsicPayload {
+        const ext = this._api?.tx.utility.batchAll(txs);
+        if (ext) return ext;
+        throw new Error('Undefined batch all');
+    }
+
+    public async getBalance() {
         const addr = this._faucetAccount.address;
 
-        const { data } = await this._api.query.system.account(addr);
+        const balance = await this.api.query.system.account(addr);
+        const { data } = balance;
 
-        const faucetReserve = this.formatBalance(data.free.toBn());
-
-        return faucetReserve;
+        return this.formatBalance(data.free.toBn().toString());
     }
 
-    public formatBalance(input: string | number | BN) {
+    public formatBalance(input: string) {
+        formatBalance.setDefaults({
+            unit: this._chainProperty.tokenSymbols[0],
+            decimals: this._chainProperty.tokenDecimals[0],
+        });
         return formatBalance(input, {
             withSi: true,
             withUnit: true,
         });
     }
 
-    // public async sendTokenTo(to: string, statusCb: (result: ISubmittableResult) => Promise<void>) {
-    //     // send 30 testnet tokens per call
-    //     //const faucetAmount = new BN(30).mul(new BN(10).pow(new BN(18)));
-
-    //     let destinationAccount = to;
-    //     const addrType = checkAddressType(to);
-
-    //     // convert the h160 (evm) account to ss58 before sending the tokens
-    //     if (addrType === 'H160') {
-    //         destinationAccount = evmToAddress(to, ASTAR_SS58_FORMAT);
-    //     }
-    //     return await this._api.tx.balances
-    //         .transfer(destinationAccount, this._dripAmount)
-    //         .signAndSend(this._faucetAccount, statusCb);
-    // }
-    public async sendTokenTo({ to, dripAmount, network }: { to: string; dripAmount: BN; network: NetworkName }) {
-        // send 30 testnet tokens per call
-        //const faucetAmount = new BN(30).mul(new BN(10).pow(new BN(18)));
-
-        await this.connectTo(network);
-        let destinationAccount = to;
-        const addrType = checkAddressType(to);
-
-        // convert the h160 (evm) account to ss58 before sending the tokens
-        if (addrType === 'H160') {
-            destinationAccount = evmToAddress(to, ASTAR_SS58_FORMAT);
-        }
-
-        await this.checkFaucetBalance({ network }).catch((e) => {
-            console.error(e.message);
-        });
-        return await this._api.tx.balances
-            .transfer(destinationAccount, dripAmount)
-            .signAndSend(this._faucetAccount, { nonce: -1 });
+    public async signAndSend(tx: ExtrinsicPayload, options?: Partial<SignerOptions>) {
+        // ensure that we automatically increment the nonce per transaction
+        return await tx.signAndSend(this.faucetAccount, { nonce: -1, ...options });
     }
 
-    public async getBalanceStatus({
-        network,
-    }: {
-        network: NetworkName;
-    }): Promise<{ balance: number; isShortage: boolean }> {
-        const numOfTimes = safeBalOfTxTimes;
-        const faucetAmount = FAUCET_AMOUNT[network];
-        const threshold = faucetAmount * numOfTimes;
-        try {
-            await this.connectTo(network);
-            const account = await this._api.query.system.account(this._faucetAccount.address);
-            const balance = Number(ethers.utils.formatUnits(account.data.free.toString(), ASTAR_TOKEN_DECIMALS));
-            return { balance, isShortage: threshold > balance };
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
-            console.error(error.message);
-            const balance = 0;
-            return { balance, isShortage: threshold > balance };
-        }
+    public faucetRequestTime(address: string) {
+        const lastRequestAt = this._faucetLedger[address] || 0;
+        return { lastRequestAt, nextRequestAt: lastRequestAt > 0 ? lastRequestAt + this._requestTimeout : 0 };
     }
 
-    public async checkFaucetBalance({ network }: { network: Network }): Promise<{ balance: number; unit: string }> {
-        try {
-            const { balance, isShortage } = await this.getBalanceStatus({ network });
-            const unit = getTokenUnit(network);
+    public async drip(dest: string) {
+        let address = dest;
 
-            const endpoint = process.env.DISCORD_WEBHOOK_URL;
-            const mentionId = process.env.DISCORD_MENTION_ID;
-
-            if (endpoint && isShortage) {
-                const mention = mentionId && `<${mentionId}>`;
-                const text = dedent`
-                            ⚠️ The faucet wallet will run out of balance soon ${mention}
-                            Address: ${this._faucetAccount.address}
-                            Balance: ${balance.toFixed(0)} ${unit}
-                            `;
-                postDiscordMessage({ text, endpoint });
-            }
-            return { balance, unit };
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
-            console.error(error.message);
-            return { balance: 0, unit: '' };
+        if (!address) {
+            throw new Error('No address was given');
         }
+
+        // convert H160 address to SS58
+        if (isEthereumAddress(dest)) {
+            address = evmToAddress(dest);
+        }
+        // check if it is a valid address
+        if (!isAddress(address) || !checkAddress(address, ASTAR_SS58_FORMAT)) {
+            throw new Error(`${dest} is not a valid address!`);
+        }
+        // check if the account is not spamming
+        const canRequest = await this._canRequest(address);
+        if (!canRequest) {
+            const nextClaim = new Date(this._faucetLedger[address] + this._requestTimeout);
+            throw new Error(`Address ${dest} can request after ${nextClaim.toISOString()}`);
+        }
+
+        // check the request account's balance
+        const accountBalance = (await this._api.query.system.account(address)).data.free.toBn();
+
+        // the maximum amount of tokens to be able to receive the drip
+        const requestBuffer = helpers
+            .tokenToMinimalDenom(this._faucetDripAmount, this._chainProperty.tokenDecimals[0])
+            .divn(2);
+
+        // only accounts with less than half of the drip amount can receive the faucet drip
+        const hasLowBalance = requestBuffer.gte(accountBalance);
+
+        if (!hasLowBalance) {
+            throw new Error(
+                `Address ${dest} already has ${this.formatBalance(accountBalance.toString())}. Cannot request more.`,
+            );
+        }
+
+        const transferAmount = helpers.tokenToMinimalDenom(
+            this._faucetDripAmount,
+            this._chainProperty.tokenDecimals[0],
+        );
+        const dripTx = this.transfer(address, transferAmount);
+        const hash = (await this.signAndSend(dripTx)).toString();
+
+        this._faucetLedger[address] = Date.now();
+        return hash;
+    }
+
+    /**
+     * Check if the given address can receive a drip or not.
+     * An account can receive a drip if they haven't requested for a certain amount of time,
+     * and they have a balance under certain amount.
+     * @param address The recipient address in SS58
+     * @returns can request if true
+     */
+    private async _canRequest(address: string) {
+        //const lastRequest = this._faucetLedger[address] || null;
+        if (!isAddress(address)) {
+            throw new Error(`${address} is not a correct SS58 address`);
+        }
+
+        const overTimeout =
+            !(address in this._faucetLedger) || this._faucetLedger[address] + this._requestTimeout < Date.now();
+
+        // true if there was no last request, or the last request is over the timeout
+        return overTimeout;
     }
 }
