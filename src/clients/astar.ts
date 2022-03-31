@@ -2,24 +2,12 @@
 import * as helpers from '../helpers';
 import { ApiPromise, Keyring, WsProvider } from '@polkadot/api';
 import { ApiTypes, SignerOptions, SubmittableExtrinsic } from '@polkadot/api/types';
-import { DispatchError } from '@polkadot/types/interfaces';
-import { ITuple } from '@polkadot/types/types';
 import type { KeyringPair } from '@polkadot/keyring/types';
 import { formatBalance } from '@polkadot/util';
 import { evmToAddress, mnemonicGenerate, checkAddress, isEthereumAddress } from '@polkadot/util-crypto';
 import BN from 'bn.js';
 
-export enum Network {
-    astar = 'astar',
-    shiden = 'shiden',
-    shibuya = 'shibuya',
-    dusty = 'dusty',
-}
-
 export type ExtrinsicPayload = SubmittableExtrinsic<'promise'>;
-
-// todo: remove all references to the network name
-export type NetworkName = Network.dusty | Network.shibuya | Network.shiden | Network.astar;
 
 export interface FaucetOption {
     endpoint: string;
@@ -44,7 +32,6 @@ export class AstarFaucetApi {
     private _provider: WsProvider;
     private _api: ApiPromise;
     private _keyring: Keyring;
-    private _mnemonic: string;
     private _chainProperty: ChainProperty;
 
     private _requestTimeout: number;
@@ -60,16 +47,16 @@ export class AstarFaucetApi {
         this._requestTimeout = options.requestTimeout * 1000;
         this._faucetAmount = options.faucetAmount;
 
-        // create a random account if no mnemonic was provided
-        this._mnemonic = options.mnemonic || mnemonicGenerate();
-
         console.log('connecting to ' + options.endpoint);
         this._api = new ApiPromise({
             provider: this._provider,
         });
 
         //this._keyring = new Keyring({ type: 'sr25519', ss58Format: ASTAR_SS58_FORMAT });
-        //this._faucetAccount = this._keyring.addFromUri(options.mnemonic, { name: 'Astar Faucet' });
+        // create a random account if no mnemonic was provided
+        this._faucetAccount = this._keyring.addFromUri(options.mnemonic || mnemonicGenerate(), {
+            name: 'Astar Faucet',
+        });
     }
 
     public get faucetAccount() {
@@ -80,16 +67,15 @@ export class AstarFaucetApi {
         return this._api;
     }
 
-    public get account() {
-        return this._keyring.addFromUri(this._mnemonic, { name: 'Default' }, 'sr25519');
-    }
-
     public get chainProperty() {
         return this._chainProperty;
     }
 
     public get faucetAmount() {
-        return this._faucetAmount;
+        const formattedAmount = this.formatBalance(
+            new BN(this._faucetAmount).pow(new BN(this._chainProperty.tokenDecimals[0])).toString(),
+        );
+        return formattedAmount;
     }
 
     public async start() {
@@ -111,7 +97,7 @@ export class AstarFaucetApi {
 
         const chainName = (await this._api.rpc.system.chain()).toString();
 
-        console.log(`connected to ${chainName} with account ${this.account.address}`);
+        console.log(`connected to ${chainName} with account ${this.faucetAccount.address}`);
 
         this._chainProperty = {
             tokenSymbols,
@@ -146,7 +132,7 @@ export class AstarFaucetApi {
     }
 
     public async nonce(): Promise<number | undefined> {
-        return ((await this._api?.query.system.account(this.account.address)) as any)?.nonce.toNumber();
+        return ((await this._api?.query.system.account(this.faucetAccount.address)) as any)?.nonce.toNumber();
     }
 
     public wrapBatchAll(txs: ExtrinsicPayload[]): ExtrinsicPayload {
@@ -162,12 +148,14 @@ export class AstarFaucetApi {
 
         const { data } = balance as any;
 
-        const faucetReserve = this.formatBalance(data.free.toBn().toString());
-
-        return faucetReserve;
+        return this.formatBalance(data.free.toBn().toString());
     }
 
     public formatBalance(input: string) {
+        formatBalance.setDefaults({
+            unit: this._chainProperty.tokenSymbols[0],
+            decimals: this._chainProperty.tokenDecimals[0],
+        });
         return formatBalance(input, {
             withSi: true,
             withUnit: true,
@@ -176,7 +164,7 @@ export class AstarFaucetApi {
 
     public async signAndSend(tx: ExtrinsicPayload, options?: Partial<SignerOptions>) {
         // ensure that we automatically increment the nonce per transaction
-        return await tx.signAndSend(this.account, { nonce: -1, ...options });
+        return await tx.signAndSend(this.faucetAccount, { nonce: -1, ...options });
     }
 
     public async drip(dest: string) {

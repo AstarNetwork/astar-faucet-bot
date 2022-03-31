@@ -1,7 +1,5 @@
-import { Network } from './astar';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
-import { AstarFaucetApi, NetworkName } from '.';
 import {
     appConfig,
     DISCORD_APP_CLIENT_ID,
@@ -9,13 +7,13 @@ import {
     DISCORD_FAUCET_CHANNEL_ID,
     DISCORD_GUILD_ID,
 } from '../config';
-import { canRequestFaucet, logRequest } from '../middlewares';
 import { Client, Intents, Interaction } from 'discord.js';
+import { Network, NetworkApis } from '../types';
 
 export interface DiscordCredentials {
     token: string;
     clientId: string;
-    astarApi: AstarFaucetApi;
+    apis: NetworkApis;
 }
 
 const concatBotScope = (scopes: string[]) => {
@@ -60,11 +58,10 @@ export const discordFaucetApp = async (appCred: DiscordCredentials) => {
         );
     }
 
-    const { astarApi, token, clientId } = appCred;
+    const { apis, token, clientId } = appCred;
+    const { astarApi, shidenApi, shibuyaApi } = apis;
     await refreshSlashCommands(token, clientId, DISCORD_GUILD_ID);
     const clientApp = new Client({ intents: [Intents.FLAGS.GUILDS] });
-
-    //await astarApi.connectTo(network);
 
     clientApp.on('ready', async () => {
         if (clientApp.user) {
@@ -82,7 +79,7 @@ export const discordFaucetApp = async (appCred: DiscordCredentials) => {
 
         if (commandName === 'drip') {
             // note: the values are based on `src/config/appConfig.json`
-            const networkName = interaction.options.data[0]?.value as NetworkName;
+            const networkName = interaction.options.data[0]?.value as Network;
             const address = interaction.options.data[1]?.value;
             try {
                 if (!address || typeof address !== 'string' || !networkName) {
@@ -97,13 +94,27 @@ export const discordFaucetApp = async (appCred: DiscordCredentials) => {
                 const now = Date.now();
                 //await canRequestFaucet(requesterId, now);
 
-                const dripAmount = astarApi.faucetAmount.toString();
+                let dripAmount = '';
+                switch (networkName) {
+                    case Network.astar:
+                        await astarApi.drip(address);
+                        dripAmount = astarApi.faucetAmount;
+                        break;
+                    case Network.shiden:
+                        await shidenApi.drip(address);
+                        dripAmount = shidenApi.faucetAmount;
+                        break;
+                    default:
+                        await shibuyaApi.drip(address);
+                        dripAmount = shibuyaApi.faucetAmount;
+                        break;
+                }
 
                 //await astarApi.sendTokenTo({ to: address, dripAmount, network });
-                await astarApi.drip(address);
+                //await astarApi.drip(address);
 
                 // Send token to the requester
-                console.log(`Sending ${dripAmount} ${astarApi.chainProperty.tokenSymbols[0]} to ${address}`);
+                console.log(`Sending ${dripAmount} to ${address}`);
 
                 const remainingFunds = await astarApi.getBalance();
                 await interaction.editReply(

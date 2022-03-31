@@ -1,7 +1,7 @@
 import cors from 'cors';
 import express from 'express';
-import { AstarFaucetApi, Network } from '.';
 import { appOauthInstallUrl } from './discord';
+import { NetworkApis, Network } from '../types';
 
 const whitelist = ['http://localhost:8080', 'http://localhost:8081', 'https://portal.astar.network'];
 
@@ -9,7 +9,7 @@ const whitelist = ['http://localhost:8080', 'http://localhost:8081', 'https://po
  * Handles client request via Express.js. These are usually for custom endpoints or OAuth and app installation.
  * We didn't hook this up to any database, so for out-of-the-box usage, you can hard-code the guild ID and other credentials in a .env file
  */
-export const expressApp = async (astarApi: AstarFaucetApi) => {
+export const expressApp = async (apis: NetworkApis) => {
     const app = express();
     app.use(express.json());
     app.use(cors());
@@ -34,13 +34,16 @@ export const expressApp = async (astarApi: AstarFaucetApi) => {
     });
     */
 
+    const { astarApi, shidenApi, shibuyaApi } = apis;
+
     app.post('/:network/drip', async (req, res) => {
         try {
+            // todo: refactor to make this generic
+            /*
             const origin = String(req.headers.origin);
             const listedOrigin = whitelist.find((it) => it === origin);
 
-            // todo: refactor to make this generic
-            /*
+            
             const isHeroku = origin.includes('https://deploy-preview-pr-');
 
             if (!listedOrigin && !isHeroku) {
@@ -52,8 +55,21 @@ export const expressApp = async (astarApi: AstarFaucetApi) => {
             // parse the faucet drip destination
             const address: string = req.body.destination as string;
 
-            //const hash = await sendFaucet({ address, network, astarApi });
-            const hash = await astarApi.drip(address);
+            let hash = '';
+            // i know this is not a clean solution :(
+            switch (network) {
+                case Network.astar:
+                    //const hash = await sendFaucet({ address, network, astarApi });
+                    hash = await astarApi.drip(address);
+                    break;
+                case Network.shiden:
+                    hash = await shidenApi.drip(address);
+                    break;
+                default:
+                    hash = await shibuyaApi.drip(address);
+                    break;
+            }
+
             return res.status(200).json({ hash });
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -68,8 +84,25 @@ export const expressApp = async (astarApi: AstarFaucetApi) => {
             const network: Network = req.params.network as Network;
             const address: string = req.query.destination as string;
 
-            //const { timestamps, faucet } = await getFaucetInfo({ network, address });
-            return res.status(200).json({ address, network: astarApi.chainProperty.chainName });
+            let balance = '';
+            // i know this is not a clean solution :(
+            switch (network) {
+                case Network.astar:
+                    //const { timestamps, faucet } = await getFaucetInfo({ network, address });
+                    balance = await astarApi.getBalance();
+                    break;
+
+                case Network.shiden:
+                    //const { timestamps, faucet } = await getFaucetInfo({ network, address });
+                    balance = await shidenApi.getBalance();
+                    break;
+                default:
+                    //const { timestamps, faucet } = await getFaucetInfo({ network, address });
+                    balance = await shibuyaApi.getBalance();
+                    break;
+            }
+
+            return res.status(200).json({ address, balance });
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
