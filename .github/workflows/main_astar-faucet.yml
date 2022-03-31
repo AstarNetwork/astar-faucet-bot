@@ -52,5 +52,5 @@ jobs:
               with:
                   app-name: 'astar-faucet'
                   slot-name: 'Production'
-                  publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_4F13B25397BD4B1FA4C14782435F30B6 }}
+                  publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_9B1D7A68611A4EBEBE156E9E81B8295D }}
                   package: .
