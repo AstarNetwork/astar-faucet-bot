@@ -94,6 +94,7 @@ export const discordFaucetApp = async (appCred: DiscordCredentials) => {
                 const now = Date.now();
                 //await canRequestFaucet(requesterId, now);
 
+                console.log(networkName);
                 // todo: refactor this to implement the command pattern
                 let dripAmount = '';
                 let remainingFunds = '';

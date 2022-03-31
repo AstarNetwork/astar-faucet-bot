@@ -4,7 +4,7 @@ import { ApiPromise, Keyring, WsProvider } from '@polkadot/api';
 import { ApiTypes, SignerOptions, SubmittableExtrinsic } from '@polkadot/api/types';
 import type { KeyringPair } from '@polkadot/keyring/types';
 import { formatBalance } from '@polkadot/util';
-import { evmToAddress, mnemonicGenerate, checkAddress, isEthereumAddress } from '@polkadot/util-crypto';
+import { evmToAddress, mnemonicGenerate, checkAddress, isEthereumAddress, isAddress } from '@polkadot/util-crypto';
 import BN from 'bn.js';
 
 export type ExtrinsicPayload = SubmittableExtrinsic<'promise'>;
@@ -74,7 +74,7 @@ export class AstarFaucetApi {
 
     public get faucetAmount() {
         const formattedAmount = this.formatBalance(
-            new BN(this._faucetAmount).pow(new BN(this._chainProperty.tokenDecimals[0])).toString(),
+            helpers.tokenToMinimalDenom(this._faucetAmount, this._chainProperty.tokenDecimals[0]).toString(),
         );
         return formattedAmount;
     }
@@ -145,9 +145,8 @@ export class AstarFaucetApi {
     public async getBalance() {
         const addr = this._faucetAccount.address;
 
-        const balance = await this.buildStorageQuery('system', 'account', addr);
-
-        const { data } = balance as any;
+        const balance = await this.api.query.system.account(addr);
+        const { data } = balance;
 
         return this.formatBalance(data.free.toBn().toString());
     }
@@ -168,15 +167,23 @@ export class AstarFaucetApi {
         return await tx.signAndSend(this.faucetAccount, { nonce: -1, ...options });
     }
 
+    public lastFaucetRequest(address: string) {
+        return this._faucetLedger[address] || 0;
+    }
+
     public async drip(dest: string) {
         let address = dest;
+
+        if (!address) {
+            throw new Error('No address was given');
+        }
 
         // convert H160 address to SS58
         if (isEthereumAddress(dest)) {
             address = evmToAddress(dest);
         }
         // check if it is a valid address
-        if (!checkAddress(address, ASTAR_SS58_FORMAT)) {
+        if (!isAddress(address) || !checkAddress(address, ASTAR_SS58_FORMAT)) {
             throw new Error(`${dest} is not a valid address!`);
         }
         if (!this._canRequest(address)) {

@@ -15,6 +15,14 @@
                         "required": true,
                         "choices": [
                             {
+                                "name": "Astar",
+                                "value": "astar"
+                            },
+                            {
+                                "name": "Shiden",
+                                "value": "shiden"
+                            },
+                            {
                                 "name": "Shibuya",
                                 "value": "shibuya"
                             }
@@ -35,7 +43,7 @@
         "shibuya": {
             "endpoint": "wss://rpc.shibuya.astar.network",
             "amount": 15,
-            "requestTimeout": 30,
+            "requestTimeout": 3600,
             "types": {
                 "Keys": "AccountId",
                 "SmartContract": {
@@ -59,7 +67,7 @@
         "shiden": {
             "endpoint": "wss://rpc.shiden.astar.network",
             "amount": 0.002,
-            "requestTimeout": 1440,
+            "requestTimeout": 86400,
             "types": {
                 "Keys": "AccountId",
                 "SmartContract": {
@@ -83,7 +91,7 @@
         "astar": {
             "endpoint": "wss://rpc.astar.network",
             "amount": 0.002,
-            "requestTimeout": 1440,
+            "requestTimeout": 86400,
             "types": {
                 "Keys": "AccountId",
                 "SmartContract": {
