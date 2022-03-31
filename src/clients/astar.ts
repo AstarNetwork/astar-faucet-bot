@@ -190,10 +190,28 @@ export class FaucetApi {
         if (!isAddress(address) || !checkAddress(address, ASTAR_SS58_FORMAT)) {
             throw new Error(`${dest} is not a valid address!`);
         }
+        // check if the account is not spamming
         const canRequest = await this._canRequest(address);
         if (!canRequest) {
             const nextClaim = new Date(this._faucetLedger[address] + this._requestTimeout);
             throw new Error(`Address ${dest} can request after ${nextClaim.toISOString()}`);
+        }
+
+        // check the request account's balance
+        const accountBalance = (await this._api.query.system.account(address)).data.free.toBn();
+
+        // the maximum amount of tokens to be able to receive the drip
+        const requestBuffer = helpers
+            .tokenToMinimalDenom(this._faucetDripAmount, this._chainProperty.tokenDecimals[0])
+            .divn(2);
+
+        // only accounts with less than half of the drip amount can receive the faucet drip
+        const hasLowBalance = requestBuffer.gte(accountBalance);
+
+        if (!hasLowBalance) {
+            throw new Error(
+                `Address ${dest} already has ${this.formatBalance(accountBalance.toString())}. Cannot request more.`,
+            );
         }
 
         const transferAmount = helpers.tokenToMinimalDenom(
@@ -222,16 +240,8 @@ export class FaucetApi {
 
         const overTimeout =
             !(address in this._faucetLedger) || this._faucetLedger[address] + this._requestTimeout < Date.now();
-        const accountBalance = (await this._api.query.system.account(address)).data.free.toBn();
 
-        // the maximum amount of tokens to be able to receive the drip
-        const requestBuffer = helpers
-            .tokenToMinimalDenom(this._faucetDripAmount, this._chainProperty.tokenDecimals[0])
-            .divn(2);
-
-        // only accounts with less than half of the drip amount can receive the faucet drip
-        const hasLowBalance = requestBuffer.gte(accountBalance);
         // true if there was no last request, or the last request is over the timeout
-        return overTimeout && hasLowBalance;
+        return overTimeout;
     }
 }
