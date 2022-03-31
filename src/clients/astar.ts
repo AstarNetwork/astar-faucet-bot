@@ -14,7 +14,7 @@ export interface FaucetOption {
     mnemonic: string;
     // waiting time for the faucet request in seconds
     requestTimeout: number;
-    faucetAmount: number;
+    faucetDripAmount: number;
 }
 
 // ss58 address prefix
@@ -38,7 +38,7 @@ export class AstarFaucetApi {
     // a key-value pair of address and last request timestamp
     // note: because this is stored in memory, resetting the bot will reset the history too
     private _faucetLedger: { [key: string]: number } = {};
-    private _faucetAmount: number;
+    private _faucetDripAmount: number;
 
     constructor(options: FaucetOption) {
         this._provider = new WsProvider(options.endpoint, AUTO_CONNECT_MS);
@@ -46,7 +46,7 @@ export class AstarFaucetApi {
 
         // note: the ledger is recorded in milliseconds
         this._requestTimeout = options.requestTimeout * 1000;
-        this._faucetAmount = options.faucetAmount;
+        this._faucetDripAmount = options.faucetDripAmount;
 
         console.log('connecting to ' + options.endpoint);
         this._api = new ApiPromise({
@@ -74,7 +74,7 @@ export class AstarFaucetApi {
 
     public get faucetAmount() {
         const formattedAmount = this.formatBalance(
-            helpers.tokenToMinimalDenom(this._faucetAmount, this._chainProperty.tokenDecimals[0]).toString(),
+            helpers.tokenToMinimalDenom(this._faucetDripAmount, this._chainProperty.tokenDecimals[0]).toString(),
         );
         return formattedAmount;
     }
@@ -186,12 +186,16 @@ export class AstarFaucetApi {
         if (!isAddress(address) || !checkAddress(address, ASTAR_SS58_FORMAT)) {
             throw new Error(`${dest} is not a valid address!`);
         }
-        if (!this._canRequest(address)) {
+        const canRequest = await this._canRequest(address);
+        if (!canRequest) {
             const nextClaim = new Date(this._faucetLedger[address] + this._requestTimeout);
             throw new Error(`Address ${dest} can request after ${nextClaim.toISOString()}`);
         }
 
-        const transferAmount = helpers.tokenToMinimalDenom(this._faucetAmount, this._chainProperty.tokenDecimals[0]);
+        const transferAmount = helpers.tokenToMinimalDenom(
+            this._faucetDripAmount,
+            this._chainProperty.tokenDecimals[0],
+        );
         const dripTx = this.transfer(address, transferAmount);
         const hash = (await this.signAndSend(dripTx)).toString();
 
@@ -199,10 +203,31 @@ export class AstarFaucetApi {
         return hash;
     }
 
-    private _canRequest(address: string) {
+    /**
+     * Check if the given address can receive a drip or not.
+     * An account can receive a drip if they haven't requested for a certain amount of time,
+     * and they have a balance under certain amount.
+     * @param address The recipient address in SS58
+     * @returns can request if true
+     */
+    private async _canRequest(address: string) {
         //const lastRequest = this._faucetLedger[address] || null;
+        if (!isAddress(address)) {
+            throw new Error(`${address} is not a correct SS58 address`);
+        }
 
+        const overTimeout =
+            !(address in this._faucetLedger) || this._faucetLedger[address] + this._requestTimeout < Date.now();
+        const accountBalance = (await this._api.query.system.account(address)).data.free.toBn();
+
+        // the maximum amount of tokens to be able to receive the drip
+        const requestBuffer = helpers
+            .tokenToMinimalDenom(this._faucetDripAmount, this._chainProperty.tokenDecimals[0])
+            .divn(2);
+
+        // only accounts with less than half of the drip amount can receive the faucet drip
+        const hasLowBalance = requestBuffer.gte(accountBalance);
         // true if there was no last request, or the last request is over the timeout
-        return !(address in this._faucetLedger) || this._faucetLedger[address] + this._requestTimeout < Date.now();
+        return overTimeout && hasLowBalance;
     }
 }

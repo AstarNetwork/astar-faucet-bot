@@ -90,11 +90,10 @@ export const discordFaucetApp = async (appCred: DiscordCredentials) => {
                 await interaction.deferReply();
 
                 // Check if the user has already requested tokens or not
-                const requesterId = interaction.user.id;
-                const now = Date.now();
+                //const requesterId = interaction.user.id;
+                //const now = Date.now();
                 //await canRequestFaucet(requesterId, now);
 
-                console.log(networkName);
                 // todo: refactor this to implement the command pattern
                 let dripAmount = '';
                 let remainingFunds = '';

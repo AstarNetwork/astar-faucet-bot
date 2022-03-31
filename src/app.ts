@@ -19,21 +19,21 @@ export default async function app() {
         mnemonic: faucetAccountSeed,
         endpoint: appConfig.network['astar'].endpoint,
         requestTimeout: appConfig.network['astar'].requestTimeout,
-        faucetAmount: appConfig.network['astar'].amount,
+        faucetDripAmount: appConfig.network['astar'].amount,
     }).start();
 
     const shidenApi = await new AstarFaucetApi({
         mnemonic: faucetAccountSeed,
         endpoint: appConfig.network['shiden'].endpoint,
         requestTimeout: appConfig.network['shiden'].requestTimeout,
-        faucetAmount: appConfig.network['shiden'].amount,
+        faucetDripAmount: appConfig.network['shiden'].amount,
     }).start();
 
     const shibuyaApi = await new AstarFaucetApi({
         mnemonic: faucetAccountSeed,
         endpoint: appConfig.network['shibuya'].endpoint,
         requestTimeout: appConfig.network['shibuya'].requestTimeout,
-        faucetAmount: appConfig.network['shibuya'].amount,
+        faucetDripAmount: appConfig.network['shibuya'].amount,
     }).start();
 
     const networks = {
