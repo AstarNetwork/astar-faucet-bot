@@ -13,34 +13,27 @@ export default async function app() {
     if (!faucetAccountSeed) {
         throw Error('Secret phrase is not defined');
     }
-
-    // todo: make this determined by the client flag
-    const networkName = 'shibuya';
-
-    const endpoint = appConfig.network[networkName].endpoint;
-    const faucetAmount = appConfig.network[networkName].amount;
-
     await cryptoWaitReady();
 
     const astarApi = await new AstarFaucetApi({
         mnemonic: faucetAccountSeed,
         endpoint: appConfig.network['astar'].endpoint,
         requestTimeout: 180,
-        faucetAmount,
+        faucetAmount: appConfig.network['astar'].amount,
     }).start();
 
     const shidenApi = await new AstarFaucetApi({
         mnemonic: faucetAccountSeed,
         endpoint: appConfig.network['shiden'].endpoint,
         requestTimeout: 180,
-        faucetAmount,
+        faucetAmount: appConfig.network['shiden'].amount,
     }).start();
 
     const shibuyaApi = await new AstarFaucetApi({
         mnemonic: faucetAccountSeed,
         endpoint: appConfig.network['shibuya'].endpoint,
         requestTimeout: 180,
-        faucetAmount,
+        faucetAmount: appConfig.network['shibuya'].amount,
     }).start();
 
     const networks = {
@@ -50,14 +43,14 @@ export default async function app() {
     };
 
     // only start the discord bot if there is a API token
-    // if (DISCORD_APP_TOKEN && DISCORD_APP_CLIENT_ID) {
-    //     // throw new Error('No app tokens or ID were given!');
-    //     await discordFaucetApp({
-    //         token: DISCORD_APP_TOKEN,
-    //         clientId: DISCORD_APP_CLIENT_ID,
-    //         astarApi,
-    //     });
-    // }
+    if (DISCORD_APP_TOKEN && DISCORD_APP_CLIENT_ID) {
+        // throw new Error('No app tokens or ID were given!');
+        await discordFaucetApp({
+            token: DISCORD_APP_TOKEN,
+            clientId: DISCORD_APP_CLIENT_ID,
+            apis: networks,
+        });
+    }
 
     // start the express app
     await expressApp(networks);
