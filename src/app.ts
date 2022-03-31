@@ -1,6 +1,6 @@
 import { cryptoWaitReady } from '@polkadot/util-crypto';
 
-import { AstarFaucetApi, expressApp, discordFaucetApp } from './clients';
+import { FaucetApi, expressApp, discordFaucetApp } from './clients';
 import { DISCORD_APP_CLIENT_ID, DISCORD_APP_TOKEN, appConfig } from './config';
 
 import '@polkadot/api-augment';
@@ -15,21 +15,21 @@ export default async function app() {
     }
     await cryptoWaitReady();
 
-    const astarApi = await new AstarFaucetApi({
+    const astarApi = await new FaucetApi({
         mnemonic: faucetAccountSeed,
         endpoint: appConfig.network['astar'].endpoint,
         requestTimeout: appConfig.network['astar'].requestTimeout,
         faucetDripAmount: appConfig.network['astar'].amount,
     }).start();
 
-    const shidenApi = await new AstarFaucetApi({
+    const shidenApi = await new FaucetApi({
         mnemonic: faucetAccountSeed,
         endpoint: appConfig.network['shiden'].endpoint,
         requestTimeout: appConfig.network['shiden'].requestTimeout,
         faucetDripAmount: appConfig.network['shiden'].amount,
     }).start();
 
-    const shibuyaApi = await new AstarFaucetApi({
+    const shibuyaApi = await new FaucetApi({
         mnemonic: faucetAccountSeed,
         endpoint: appConfig.network['shibuya'].endpoint,
         requestTimeout: appConfig.network['shibuya'].requestTimeout,

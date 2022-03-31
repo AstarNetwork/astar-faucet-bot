@@ -100,17 +100,17 @@ export const discordFaucetApp = async (appCred: DiscordCredentials) => {
                 switch (networkName) {
                     case Network.astar:
                         await astarApi.drip(address);
-                        dripAmount = astarApi.faucetAmount;
+                        dripAmount = astarApi.faucetAmountFormatted;
                         remainingFunds = await astarApi.getBalance();
                         break;
                     case Network.shiden:
                         await shidenApi.drip(address);
-                        dripAmount = shidenApi.faucetAmount;
+                        dripAmount = shidenApi.faucetAmountFormatted;
                         remainingFunds = await shidenApi.getBalance();
                         break;
                     default:
                         await shibuyaApi.drip(address);
-                        dripAmount = shibuyaApi.faucetAmount;
+                        dripAmount = shibuyaApi.faucetAmountFormatted;
                         remainingFunds = await shibuyaApi.getBalance();
                         break;
                 }

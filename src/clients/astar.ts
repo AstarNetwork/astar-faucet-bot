@@ -27,7 +27,7 @@ interface ChainProperty {
     chainName: string;
 }
 
-export class AstarFaucetApi {
+export class FaucetApi {
     private _faucetAccount: KeyringPair;
     private _provider: WsProvider;
     private _api: ApiPromise;
@@ -72,11 +72,14 @@ export class AstarFaucetApi {
         return this._chainProperty;
     }
 
-    public get faucetAmount() {
+    public get faucetAmountFormatted() {
         const formattedAmount = this.formatBalance(
             helpers.tokenToMinimalDenom(this._faucetDripAmount, this._chainProperty.tokenDecimals[0]).toString(),
         );
         return formattedAmount;
+    }
+    public get faucetAmountNum() {
+        return this._faucetDripAmount;
     }
 
     public async start() {
@@ -167,8 +170,9 @@ export class AstarFaucetApi {
         return await tx.signAndSend(this.faucetAccount, { nonce: -1, ...options });
     }
 
-    public lastFaucetRequest(address: string) {
-        return this._faucetLedger[address] || 0;
+    public faucetRequestTime(address: string) {
+        const lastRequestAt = this._faucetLedger[address] || 0;
+        return { lastRequestAt, nextRequestAt: lastRequestAt > 0 ? lastRequestAt + this._requestTimeout : 0 };
     }
 
     public async drip(dest: string) {

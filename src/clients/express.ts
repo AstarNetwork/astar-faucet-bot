@@ -1,7 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 import { appOauthInstallUrl } from './discord';
-import { NetworkApis, Network } from '../types';
+import { NetworkApis, Network, FaucetInfo } from '../types';
 
 const whitelist = ['http://localhost:8080', 'http://localhost:8081', 'https://portal.astar.network'];
 
@@ -68,7 +68,7 @@ export const expressApp = async (apis: NetworkApis) => {
                     break;
             }
 
-            return res.status(200).json({ code: 200, response: { hash } });
+            return res.status(200).json({ hash });
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
@@ -83,33 +83,51 @@ export const expressApp = async (apis: NetworkApis) => {
             const address: string = req.query.destination as string;
 
             let balance = '';
-            let lastRequestTime = 0;
+            let faucetInfo: FaucetInfo;
             // i know this is not a clean solution :(
             switch (network) {
                 case Network.astar:
                     //const { timestamps, faucet } = await getFaucetInfo({ network, address });
                     balance = await astarApi.getBalance();
-                    lastRequestTime = astarApi.lastFaucetRequest(address);
+                    faucetInfo = {
+                        timestamps: astarApi.faucetRequestTime(address),
+                        faucet: {
+                            unit: astarApi.chainProperty.tokenSymbols[0],
+                            amount: astarApi.faucetAmountNum,
+                        },
+                    };
                     break;
 
                 case Network.shiden:
                     //const { timestamps, faucet } = await getFaucetInfo({ network, address });
                     balance = await shidenApi.getBalance();
-                    lastRequestTime = shidenApi.lastFaucetRequest(address);
+                    faucetInfo = {
+                        timestamps: shidenApi.faucetRequestTime(address),
+                        faucet: {
+                            unit: shidenApi.chainProperty.tokenSymbols[0],
+                            amount: shidenApi.faucetAmountNum,
+                        },
+                    };
                     break;
                 default:
                     //const { timestamps, faucet } = await getFaucetInfo({ network, address });
                     balance = await shibuyaApi.getBalance();
-                    lastRequestTime = shibuyaApi.lastFaucetRequest(address);
+                    faucetInfo = {
+                        timestamps: shibuyaApi.faucetRequestTime(address),
+                        faucet: {
+                            unit: shibuyaApi.chainProperty.tokenSymbols[0],
+                            amount: shibuyaApi.faucetAmountNum,
+                        },
+                    };
                     break;
             }
 
-            return res.status(200).json({ code: 200, response: { lastRequestTime, balance } });
+            return res.status(200).json({ timestamps: faucetInfo.timestamps, faucet: faucetInfo.faucet });
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
             console.error(e);
-            res.status(500).json(e.message || 'something goes wrong');
+            res.status(500).json({ code: 500, error: e.message || 'something goes wrong' });
         }
     });
 
