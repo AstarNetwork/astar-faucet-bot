@@ -95,18 +95,22 @@ export const discordFaucetApp = async (appCred: DiscordCredentials) => {
                 //await canRequestFaucet(requesterId, now);
 
                 let dripAmount = '';
+                let remainingFunds = '';
                 switch (networkName) {
                     case Network.astar:
                         await astarApi.drip(address);
                         dripAmount = astarApi.faucetAmount;
+                        remainingFunds = await astarApi.getBalance();
                         break;
                     case Network.shiden:
                         await shidenApi.drip(address);
                         dripAmount = shidenApi.faucetAmount;
+                        remainingFunds = await shidenApi.getBalance();
                         break;
                     default:
                         await shibuyaApi.drip(address);
                         dripAmount = shibuyaApi.faucetAmount;
+                        remainingFunds = await shibuyaApi.getBalance();
                         break;
                 }
 
@@ -116,7 +120,6 @@ export const discordFaucetApp = async (appCred: DiscordCredentials) => {
                 // Send token to the requester
                 console.log(`Sending ${dripAmount} to ${address}`);
 
-                const remainingFunds = await astarApi.getBalance();
                 await interaction.editReply(
                     `Sent ${dripAmount} to \`${address}\`. Please wait until the transaction gets finalized.\nRemaining funds: \`${remainingFunds}\`\nPlease send unused tokens back to the faucet \`${astarApi.faucetAccount.address}\``,
                 );
