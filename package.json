@@ -58,7 +58,7 @@
     },
     "dependencies": {
         "@discordjs/rest": "^0.3.0",
-        "@polkadot/api": "^7.14.3",
+        "@polkadot/api": "^7.14.4-5",
         "@polkadot/keyring": "^8.7.1",
         "@polkadot/util": "^8.7.1",
         "@polkadot/util-crypto": "^8.7.1",

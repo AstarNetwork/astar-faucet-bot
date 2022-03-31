@@ -3,6 +3,8 @@ import { cryptoWaitReady } from '@polkadot/util-crypto';
 import { AstarFaucetApi, expressApp, discordFaucetApp } from './clients';
 import { DISCORD_APP_CLIENT_ID, DISCORD_APP_TOKEN, appConfig } from './config';
 
+import '@polkadot/api-augment';
+
 /**
  * the main entry function for running the discord application
  */
