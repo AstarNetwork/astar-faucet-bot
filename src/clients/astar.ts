@@ -197,21 +197,26 @@ export class FaucetApi {
             throw new Error(`Address ${dest} can request after ${nextClaim.toISOString()}`);
         }
 
-        // check the request account's balance
-        const accountBalance = (await this._api.query.system.account(address)).data.free.toBn();
+        // a hacky ad-hoc check to allow testnet requests to be made regardless of the user's current balance
+        if (!this._chainProperty.chainName.toLocaleLowerCase().includes('test')) {
+            // check the request account's balance
+            const accountBalance = (await this._api.query.system.account(address)).data.free.toBn();
 
-        // the maximum amount of tokens to be able to receive the drip
-        const requestBuffer = helpers
-            .tokenToMinimalDenom(this._faucetDripAmount, this._chainProperty.tokenDecimals[0])
-            .divn(2);
+            // the maximum amount of tokens to be able to receive the drip
+            const requestBuffer = helpers
+                .tokenToMinimalDenom(this._faucetDripAmount, this._chainProperty.tokenDecimals[0])
+                .divn(2);
 
-        // only accounts with less than half of the drip amount can receive the faucet drip
-        const hasLowBalance = requestBuffer.gte(accountBalance);
+            // only accounts with less than half of the drip amount can receive the faucet drip
+            const hasLowBalance = requestBuffer.gte(accountBalance);
 
-        if (!hasLowBalance) {
-            throw new Error(
-                `Address ${dest} already has ${this.formatBalance(accountBalance.toString())}. Cannot request more.`,
-            );
+            if (!hasLowBalance) {
+                throw new Error(
+                    `Address ${dest} already has ${this.formatBalance(
+                        accountBalance.toString(),
+                    )}. Cannot request more.`,
+                );
+            }
         }
 
         const transferAmount = helpers.tokenToMinimalDenom(
