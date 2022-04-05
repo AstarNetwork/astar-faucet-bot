@@ -53,7 +53,8 @@ export const expressApp = async (apis: NetworkApis) => {
             // parse the faucet drip destination
             const address: string = req.body.destination as string;
             // todo: refactor this to implement the command pattern
-            let hash = '';
+            //let hash = '';
+            /*
             // i know this is not a clean solution :(
             switch (network) {
                 case Network.astar:
@@ -68,7 +69,8 @@ export const expressApp = async (apis: NetworkApis) => {
             }
 
             return res.status(200).json({ hash });
-
+            */
+            return res.status(403).json({ code: 403, error: 'Faucet no longer supported' });
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
             console.error(e);
