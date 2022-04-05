@@ -15,14 +15,6 @@
                         "required": true,
                         "choices": [
                             {
-                                "name": "Astar",
-                                "value": "astar"
-                            },
-                            {
-                                "name": "Shiden",
-                                "value": "shiden"
-                            },
-                            {
                                 "name": "Shibuya",
                                 "value": "shibuya"
                             }
