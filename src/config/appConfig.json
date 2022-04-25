@@ -42,7 +42,7 @@
     "network": {
         "shibuya": {
             "endpoint": "wss://rpc.shibuya.astar.network",
-            "amount": 50,
+            "amount": 10,
             "requestTimeout": 3600,
             "types": {
                 "Keys": "AccountId",
