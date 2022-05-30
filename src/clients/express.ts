@@ -48,9 +48,9 @@ export const expressApp = async (apis: NetworkApis) => {
             const listedOrigin = whitelist.find((it) => it === origin);
 
             // for portal staging environments
-            const isHeroku = origin.includes('https://deploy-preview-pr-');
+            const isStagingUrl = origin.includes('https://astar-apps--pr');
 
-            if (!listedOrigin && !isHeroku) {
+            if (!listedOrigin && !isStagingUrl) {
                 throw Error('invalid request');
             }
 
