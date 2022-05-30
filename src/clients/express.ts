@@ -1,9 +1,14 @@
 import cors from 'cors';
 import express from 'express';
-import { appOauthInstallUrl } from './discord';
+import { verifyRecaptcha } from '../helpers';
 import { NetworkApis, Network, FaucetInfo } from '../types';
 
 const whitelist = ['http://localhost:8080', 'http://localhost:8081', 'https://portal.astar.network'];
+
+const recaptchaSecret = process.env.GOOGLE_RECAPTCHA_SECRET;
+if (!recaptchaSecret) {
+    throw Error('Secret key for recaptcha is not defined');
+}
 
 /**
  * Handles client request via Express.js. These are usually for custom endpoints or OAuth and app installation.
@@ -43,11 +48,15 @@ export const expressApp = async (apis: NetworkApis) => {
             const listedOrigin = whitelist.find((it) => it === origin);
 
             // for portal staging environments
-            const isHeroku = origin.includes('https://deploy-preview-pr-');
+            const isStagingUrl = origin.includes('https://astar-apps--pr');
 
-            if (!listedOrigin && !isHeroku) {
+            if (!listedOrigin && !isStagingUrl) {
                 throw Error('invalid request');
             }
+
+            const recaptchaResponse: string = req.body.recaptchaResponse || '';
+            await verifyRecaptcha({ recaptchaResponse, recaptchaSecret });
+
             // parse the name of the network
             const network: Network = req.params.network as Network;
             // parse the faucet drip destination
