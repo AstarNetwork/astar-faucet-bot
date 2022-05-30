@@ -23,6 +23,9 @@ DISCORD_FAUCET_CHANNEL_ID=<channel id>
 # Secret phrase (mnemonic) for the faucet account
 FAUCET_SECRET_PHRASE=<secret phrase>
 
+# Secret key for RECAPTCHA
+GOOGLE_RECAPTCHA_SECRET = <secret key>
+
 # Private key for the EVM faucet account
 EVM_FAUCET_PRIVATE_KEY=<private key>
 
