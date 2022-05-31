@@ -9,8 +9,8 @@ export const verifyRecaptcha = async ({
     recaptchaResponse: string;
     recaptchaSecret: string;
 }): Promise<boolean> => {
+    if (!recaptchaResponse) throw Error('recaptcha response is required');
     const googleRecaptcha = new GoogleRecaptcha({ secret: recaptchaSecret });
-    if (!recaptchaResponse) throw Error('invalid recaptcha');
     return await new Promise<boolean>(async (resolve) => {
         googleRecaptcha.verify({ response: recaptchaResponse }, (error: Error) => {
             if (error) {
