@@ -6,6 +6,7 @@ import type { KeyringPair } from '@polkadot/keyring/types';
 import { formatBalance } from '@polkadot/util';
 import { evmToAddress, mnemonicGenerate, checkAddress, isEthereumAddress, isAddress } from '@polkadot/util-crypto';
 import BN from 'bn.js';
+import { fetchTip } from '../helpers';
 
 export type ExtrinsicPayload = SubmittableExtrinsic<'promise'>;
 
@@ -224,7 +225,9 @@ export class FaucetApi {
             this._chainProperty.tokenDecimals[0],
         );
         const dripTx = this.transfer(address, transferAmount);
-        const hash = (await this.signAndSend(dripTx)).toString();
+        const network = this.chainProperty.chainName.toLowerCase();
+        const tip = await fetchTip({ network, speed: 'average' });
+        const hash = (await this.signAndSend(dripTx, { tip })).toString();
 
         this._faucetLedger[address] = Date.now();
         return hash;
