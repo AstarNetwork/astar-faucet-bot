@@ -9,9 +9,9 @@
         "discord",
         "bot"
     ],
-    "homepage": "https://github.com/PlasmNetwork/astar-faucet-bot",
+    "homepage": "https://github.com/AstarNetwork/astar-faucet-bot",
     "bugs": {
-        "url": "https://github.com/PlasmNetwork/astar-faucet-bot/issues"
+        "url": "https://github.com/AstarNetwork/astar-faucet-bot/issues"
     },
     "author": {
         "name": "Hoon Kim",
@@ -19,7 +19,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/PlasmNetwork/astar-faucet-bot.git"
+        "url": "https://github.com/AstarNetwork/astar-faucet-bot.git"
     },
     "main": "build/index.js",
     "scripts": {
