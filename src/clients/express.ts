@@ -14,7 +14,7 @@ if (!recaptchaSecret) {
  * Handles client request via Express.js. These are usually for custom endpoints or OAuth and app installation.
  * We didn't hook this up to any database, so for out-of-the-box usage, you can hard-code the guild ID and other credentials in a .env file
  */
-export const expressApp = async (apis: NetworkApis) => {
+export const expressApp = (apis: NetworkApis) => {
     const app = express();
     app.use(express.json());
     app.use(cors());

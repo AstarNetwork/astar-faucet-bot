@@ -54,8 +54,11 @@ export default async function app() {
     }
 
     // start the express app
-    const app = await expressApp(networks);
+    const app = expressApp(networks);
 
     exports.app = functions.https.onRequest(app);
-
 }
+
+app().catch((e) => {
+    console.log(e);
+});
