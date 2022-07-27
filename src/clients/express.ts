@@ -139,6 +139,6 @@ export const expressApp = async (apis: NetworkApis) => {
         }
     });
 
-    app.listen(port, () => console.log(`App listening at port ${port}`));
+    // app.listen(port, () => console.log(`App listening at port ${port}`));
     return app;
 };

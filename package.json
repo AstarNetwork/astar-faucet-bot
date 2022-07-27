@@ -23,6 +23,8 @@
     },
     "main": "build/index.js",
     "scripts": {
+        "serve:firebase": "npm run build && firebase emulators:start --only functions",
+        "shell:firebase": "npm run build && firebase functions:shell",
         "start": "yarn run serve",
         "serve": "node build/index.js",
         "dev": "ts-node-dev -r dotenv/config src/index.ts",
@@ -32,7 +34,7 @@
         "test": "NODE_ENV=test echo \"Test not implemented\"!"
     },
     "engines": {
-        "node": ">=16.6.x"
+        "node": "16"
     },
     "license": "MIT",
     "devDependencies": {
@@ -69,6 +71,8 @@
         "discord-api-types": "^0.30.0",
         "discord.js": "^13.6.0",
         "express": "^4.17.3",
+        "firebase-admin": "^11.0.0",
+        "firebase-functions": "^3.22.0",
         "google-recaptcha": "^1.1.0"
     }
 }
