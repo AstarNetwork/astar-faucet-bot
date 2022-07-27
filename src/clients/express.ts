@@ -1,11 +1,13 @@
 import cors from 'cors';
 import express from 'express';
+import { cryptoWaitReady } from '@polkadot/util-crypto';
 import { verifyRecaptcha } from '../helpers';
 import { NetworkApis, Network, FaucetInfo } from '../types';
+import * as functions from 'firebase-functions';
 
 const whitelist = ['http://localhost:8080', 'http://localhost:8081', 'https://portal.astar.network'];
 
-const recaptchaSecret = process.env.GOOGLE_RECAPTCHA_SECRET;
+const recaptchaSecret = process.env.GOOGLE_RECAPTCHA_SECRET || functions.config().google.recaptcha_secret;
 if (!recaptchaSecret) {
     throw Error('Secret key for recaptcha is not defined');
 }
@@ -66,12 +68,15 @@ export const expressApp = (apis: NetworkApis) => {
             // i know this is not a clean solution :(
             switch (network) {
                 case Network.astar:
+                    await astarApi.start();
                     hash = await astarApi.drip(address);
                     break;
                 case Network.shiden:
+                    await shidenApi.start();
                     hash = await shidenApi.drip(address);
                     break;
                 default:
+                    await shibuyaApi.start();
                     hash = await shibuyaApi.drip(address);
                     break;
             }
@@ -96,6 +101,7 @@ export const expressApp = (apis: NetworkApis) => {
             switch (network) {
                 case Network.astar:
                     //const { timestamps, faucet } = await getFaucetInfo({ network, address });
+                    await astarApi.start();
                     balance = await astarApi.getBalance();
                     faucetInfo = {
                         timestamps: astarApi.faucetRequestTime(address),
@@ -108,6 +114,7 @@ export const expressApp = (apis: NetworkApis) => {
 
                 case Network.shiden:
                     //const { timestamps, faucet } = await getFaucetInfo({ network, address });
+                    await shidenApi.start();
                     balance = await shidenApi.getBalance();
                     faucetInfo = {
                         timestamps: shidenApi.faucetRequestTime(address),
@@ -119,6 +126,7 @@ export const expressApp = (apis: NetworkApis) => {
                     break;
                 default:
                     //const { timestamps, faucet } = await getFaucetInfo({ network, address });
+                    await shibuyaApi.start();
                     balance = await shibuyaApi.getBalance();
                     faucetInfo = {
                         timestamps: shibuyaApi.faucetRequestTime(address),
