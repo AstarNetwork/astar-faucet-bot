@@ -1,11 +1,13 @@
 import cors from 'cors';
 import express from 'express';
+import { cryptoWaitReady } from '@polkadot/util-crypto';
 import { verifyRecaptcha } from '../helpers';
 import { NetworkApis, Network, FaucetInfo } from '../types';
+import * as functions from 'firebase-functions';
 
 const whitelist = ['http://localhost:8080', 'http://localhost:8081', 'https://portal.astar.network'];
 
-const recaptchaSecret = process.env.GOOGLE_RECAPTCHA_SECRET;
+const recaptchaSecret = process.env.GOOGLE_RECAPTCHA_SECRET || functions.config().google.recaptcha_secret;
 if (!recaptchaSecret) {
     throw Error('Secret key for recaptcha is not defined');
 }
@@ -14,7 +16,7 @@ if (!recaptchaSecret) {
  * Handles client request via Express.js. These are usually for custom endpoints or OAuth and app installation.
  * We didn't hook this up to any database, so for out-of-the-box usage, you can hard-code the guild ID and other credentials in a .env file
  */
-export const expressApp = async (apis: NetworkApis) => {
+export const expressApp = (apis: NetworkApis) => {
     const app = express();
     app.use(express.json());
     app.use(cors());
@@ -41,6 +43,10 @@ export const expressApp = async (apis: NetworkApis) => {
 
     const { astarApi, shidenApi, shibuyaApi } = apis;
 
+    app.get('/healthcheck', async (req, res) => {
+        return res.status(200).json({ status: 'ok' });
+    });
+
     app.post('/:network/drip', async (req, res) => {
         try {
             // todo: refactor to make this generic instead of hard coding
@@ -66,12 +72,15 @@ export const expressApp = async (apis: NetworkApis) => {
             // i know this is not a clean solution :(
             switch (network) {
                 case Network.astar:
+                    await astarApi.start();
                     hash = await astarApi.drip(address);
                     break;
                 case Network.shiden:
+                    await shidenApi.start();
                     hash = await shidenApi.drip(address);
                     break;
                 default:
+                    await shibuyaApi.start();
                     hash = await shibuyaApi.drip(address);
                     break;
             }
@@ -96,6 +105,7 @@ export const expressApp = async (apis: NetworkApis) => {
             switch (network) {
                 case Network.astar:
                     //const { timestamps, faucet } = await getFaucetInfo({ network, address });
+                    await astarApi.start();
                     balance = await astarApi.getBalance();
                     faucetInfo = {
                         timestamps: astarApi.faucetRequestTime(address),
@@ -108,6 +118,7 @@ export const expressApp = async (apis: NetworkApis) => {
 
                 case Network.shiden:
                     //const { timestamps, faucet } = await getFaucetInfo({ network, address });
+                    await shidenApi.start();
                     balance = await shidenApi.getBalance();
                     faucetInfo = {
                         timestamps: shidenApi.faucetRequestTime(address),
@@ -119,6 +130,7 @@ export const expressApp = async (apis: NetworkApis) => {
                     break;
                 default:
                     //const { timestamps, faucet } = await getFaucetInfo({ network, address });
+                    await shibuyaApi.start();
                     balance = await shibuyaApi.getBalance();
                     faucetInfo = {
                         timestamps: shibuyaApi.faucetRequestTime(address),
@@ -139,6 +151,6 @@ export const expressApp = async (apis: NetworkApis) => {
         }
     });
 
-    app.listen(port, () => console.log(`App listening at port ${port}`));
+    // app.listen(port, () => console.log(`App listening at port ${port}`));
     return app;
 };
