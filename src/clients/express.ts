@@ -43,6 +43,10 @@ export const expressApp = (apis: NetworkApis) => {
 
     const { astarApi, shidenApi, shibuyaApi } = apis;
 
+    app.get('/healthcheck', async (req, res) => {
+        return res.status(200).json({ status: 'ok' });
+    });
+
     app.post('/:network/drip', async (req, res) => {
         try {
             // todo: refactor to make this generic instead of hard coding
