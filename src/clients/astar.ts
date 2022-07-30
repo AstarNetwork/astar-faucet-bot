@@ -108,8 +108,6 @@ export class FaucetApi {
 
         const chainName = (await this._api.rpc.system.chain()).toString();
 
-        console.log(`connected to ${chainName} with account ${this.faucetAccount.address}`);
-
         this._chainProperty = {
             tokenSymbols,
             tokenDecimals,
@@ -122,6 +120,8 @@ export class FaucetApi {
         this._faucetAccount = this._keyring.addFromUri(this._mnemonic || mnemonicGenerate(), {
             name: 'Astar Faucet',
         });
+
+        console.log(`connected to ${chainName} with account ${this.faucetAccount.address}`);
 
         return this;
     }
