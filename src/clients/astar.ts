@@ -56,6 +56,8 @@ export class FaucetApi {
             provider: this._provider,
         });
 
+        this._mnemonic = options.mnemonic;
+
         //this._keyring = new Keyring({ type: 'sr25519', ss58Format: ASTAR_SS58_FORMAT });
         // // create a random account if no mnemonic was provided
         // this._faucetAccount = this._keyring.addFromUri(options.mnemonic || mnemonicGenerate(), {
