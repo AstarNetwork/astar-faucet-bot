@@ -41,7 +41,7 @@
 
     "network": {
         "shibuya": {
-            "endpoint": "wss://rpc.shibuya.astar.network",
+            "endpoint": "wss://shibuya-rpc.dwellir.com",
             "amount": 10,
             "requestTimeout": 3600,
             "types": {
@@ -65,7 +65,7 @@
             }
         },
         "shiden": {
-            "endpoint": "wss://rpc.shiden.astar.network",
+            "endpoint": "wss://shiden.api.onfinality.io/public-ws",
             "amount": 0.002,
             "requestTimeout": 172800,
             "types": {
@@ -89,7 +89,7 @@
             }
         },
         "astar": {
-            "endpoint": "wss://rpc.astar.network",
+            "endpoint": "wss://astar.api.onfinality.io/public-ws",
             "amount": 0.002,
             "requestTimeout": 172800,
             "types": {

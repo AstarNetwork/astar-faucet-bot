@@ -29,6 +29,8 @@ interface ChainProperty {
 }
 
 export class FaucetApi {
+    private _started: boolean;
+    private _mnemonic: string;
     private _faucetAccount: KeyringPair;
     private _provider: WsProvider;
     private _api: ApiPromise;
@@ -54,11 +56,13 @@ export class FaucetApi {
             provider: this._provider,
         });
 
+        this._mnemonic = options.mnemonic;
+
         //this._keyring = new Keyring({ type: 'sr25519', ss58Format: ASTAR_SS58_FORMAT });
-        // create a random account if no mnemonic was provided
-        this._faucetAccount = this._keyring.addFromUri(options.mnemonic || mnemonicGenerate(), {
-            name: 'Astar Faucet',
-        });
+        // // create a random account if no mnemonic was provided
+        // this._faucetAccount = this._keyring.addFromUri(options.mnemonic || mnemonicGenerate(), {
+        //     name: 'Astar Faucet',
+        // });
     }
 
     public get faucetAccount() {
@@ -84,6 +88,10 @@ export class FaucetApi {
     }
 
     public async start() {
+        if (this._started) {
+            return this;
+        }
+
         this._api = await this._api.isReady;
 
         const chainProperties = await this._api.rpc.system.properties();
@@ -102,14 +110,20 @@ export class FaucetApi {
 
         const chainName = (await this._api.rpc.system.chain()).toString();
 
-        console.log(`connected to ${chainName} with account ${this.faucetAccount.address}`);
-
         this._chainProperty = {
             tokenSymbols,
             tokenDecimals,
             chainName,
         };
         this._keyring.setSS58Format(ss58Format);
+        this._started = true;
+
+        // create a random account if no mnemonic was provided
+        this._faucetAccount = this._keyring.addFromUri(this._mnemonic || mnemonicGenerate(), {
+            name: 'Astar Faucet',
+        });
+
+        console.log(`connected to ${chainName} with account ${this.faucetAccount.address}`);
 
         return this;
     }
