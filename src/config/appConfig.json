@@ -65,8 +65,8 @@
             }
         },
         "shiden": {
-            "endpoint": "wss://shiden.api.onfinality.io/public-ws",
-            "amount": 0.002,
+            "endpoint": "wss://shiden-rpc.dwellir.com",
+            "amount": 0.01,
             "requestTimeout": 172800,
             "types": {
                 "Keys": "AccountId",
@@ -89,8 +89,8 @@
             }
         },
         "astar": {
-            "endpoint": "wss://astar.api.onfinality.io/public-ws",
-            "amount": 0.002,
+            "endpoint": "wss://astar-rpc.dwellir.com",
+            "amount": 0.01,
             "requestTimeout": 172800,
             "types": {
                 "Keys": "AccountId",
