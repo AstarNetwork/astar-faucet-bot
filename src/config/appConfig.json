@@ -66,7 +66,7 @@
         },
         "shiden": {
             "endpoint": "wss://shiden.api.onfinality.io/public-ws",
-            "amount": 0.002,
+            "amount": 0.01,
             "requestTimeout": 172800,
             "types": {
                 "Keys": "AccountId",
@@ -90,7 +90,7 @@
         },
         "astar": {
             "endpoint": "wss://astar.api.onfinality.io/public-ws",
-            "amount": 0.002,
+            "amount": 0.01,
             "requestTimeout": 172800,
             "types": {
                 "Keys": "AccountId",
