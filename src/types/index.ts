@@ -24,5 +24,6 @@ export interface FaucetInfo {
     faucet: {
         amount: number;
         unit: string;
+        faucetAddress: string;
     };
 }
