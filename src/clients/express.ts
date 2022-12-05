@@ -1,6 +1,5 @@
 import cors from 'cors';
 import express from 'express';
-import { cryptoWaitReady } from '@polkadot/util-crypto';
 import { verifyRecaptcha } from '../helpers';
 import { NetworkApis, Network, FaucetInfo } from '../types';
 import * as functions from 'firebase-functions';
@@ -112,6 +111,7 @@ export const expressApp = (apis: NetworkApis) => {
                         faucet: {
                             unit: astarApi.chainProperty.tokenSymbols[0],
                             amount: astarApi.faucetAmountNum,
+                            faucetAddress: astarApi.faucetAccount.address,
                         },
                     };
                     break;
@@ -125,6 +125,7 @@ export const expressApp = (apis: NetworkApis) => {
                         faucet: {
                             unit: shidenApi.chainProperty.tokenSymbols[0],
                             amount: shidenApi.faucetAmountNum,
+                            faucetAddress: shidenApi.faucetAccount.address,
                         },
                     };
                     break;
@@ -137,6 +138,7 @@ export const expressApp = (apis: NetworkApis) => {
                         faucet: {
                             unit: shibuyaApi.chainProperty.tokenSymbols[0],
                             amount: shibuyaApi.faucetAmountNum,
+                            faucetAddress: shibuyaApi.faucetAccount.address,
                         },
                     };
                     break;
