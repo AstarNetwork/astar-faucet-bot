@@ -4,7 +4,12 @@ import { verifyRecaptcha } from '../helpers';
 import { NetworkApis, Network, FaucetInfo } from '../types';
 import * as functions from 'firebase-functions';
 
-const whitelist = ['http://localhost:8080', 'http://localhost:8081', 'https://portal.astar.network'];
+const whitelist = [
+    'http://localhost:8080',
+    'http://localhost:8081',
+    'https://portal.astar.network',
+    'https://decentralized.portal.astar.network',
+];
 
 const recaptchaSecret = process.env.GOOGLE_RECAPTCHA_SECRET || functions.config().google.recaptcha_secret;
 if (!recaptchaSecret) {
