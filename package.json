@@ -71,8 +71,8 @@
         "discord-api-types": "^0.30.0",
         "discord.js": "^13.6.0",
         "express": "^4.17.3",
-        "firebase-admin": "^11.0.0",
-        "firebase-functions": "^3.22.0",
+        "firebase-admin": "^11.9.0",
+        "firebase-functions": "^4.4.1",
         "google-recaptcha": "^1.1.0"
     }
 }
