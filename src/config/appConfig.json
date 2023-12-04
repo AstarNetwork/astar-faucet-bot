@@ -90,7 +90,7 @@
         },
         "astar": {
             "endpoint": "wss://astar-rpc.dwellir.com",
-            "amount": 0.01,
+            "amount": 0.1,
             "requestTimeout": 172800,
             "types": {
                 "Keys": "AccountId",
