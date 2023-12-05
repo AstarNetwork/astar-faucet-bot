@@ -28,7 +28,7 @@
         "start": "yarn run serve",
         "serve": "node build/index.js",
         "dev": "ts-node-dev -r dotenv/config src/index.ts",
-        "build": "tsc --project tsconfig.json",
+        "build": "yarn && tsc --project tsconfig.json",
         "lint": "eslint '*/**/*.{js,ts}' --quiet --fix",
         "lint:check": "eslint '*/**/*.{js,ts}'",
         "test": "NODE_ENV=test echo \"Test not implemented\"!"
