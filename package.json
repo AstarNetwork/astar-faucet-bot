@@ -34,7 +34,7 @@
         "test": "NODE_ENV=test echo \"Test not implemented\"!"
     },
     "engines": {
-        "node": "16"
+        "node": "18"
     },
     "license": "MIT",
     "devDependencies": {
