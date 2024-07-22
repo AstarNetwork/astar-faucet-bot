@@ -60,11 +60,11 @@
     },
     "dependencies": {
         "@discordjs/rest": "^0.3.0",
-        "@polkadot/api": "^7.14.4-5",
-        "@polkadot/keyring": "^8.7.1",
-        "@polkadot/util": "^8.7.1",
-        "@polkadot/util-crypto": "^8.7.1",
-        "axios": "^0.27.2",
+        "@polkadot/api": "^12.2.1",
+        "@polkadot/keyring": "^13.0.2",
+        "@polkadot/util": "^13.0.2",
+        "@polkadot/util-crypto": "^13.0.2",
+        "axios": "^0.28.0",
         "bignumber.js": "^9.0.2",
         "cors": "^2.8.5",
         "dedent": "^0.7.0",
@@ -72,7 +72,7 @@
         "discord.js": "^13.6.0",
         "express": "^4.19.2",
         "firebase-admin": "^11.9.0",
-        "firebase-functions": "^4.4.1",
+        "firebase-functions": "^5.0.1",
         "google-recaptcha": "^1.1.0"
     }
 }
